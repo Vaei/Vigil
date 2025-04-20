@@ -32,28 +32,38 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
 	EVigilTargetingSource DefaultTargetingSource = EVigilTargetingSource::Pawn;
+
+	/** If true, each Vigil request will update targeting presets before proceeding */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
+	bool bUpdateTargetingPresetsOnUpdate = true;
+
+	/** If true, will update targeting presets when the owning controller's possessed pawn changes */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
+	bool bUpdateTargetingPresetsOnPawnChange = false;
 	
+	/** If true, any change in pawn possession will end existing targeting requests */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
 	bool bEndTargetingRequestsOnPawnChange = false;
-	
-	/** Determines when we call GetTargetingPresets() to update the cached presets */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
-	EVigilTargetPresetUpdateMode TargetingPresetUpdateMode = EVigilTargetPresetUpdateMode::BeginPlay;
 
 public:
+	/** Track any change in preset update mode so we can rebind delegates as required */
 	UPROPERTY(Transient)
-	EVigilTargetPresetUpdateMode LastTargetingPresetUpdateMode = EVigilTargetPresetUpdateMode::BeginPlay;
+	bool bLastUpdateTargetingPresetsOnPawnChange = false;
 
+	/** Used to throttle the update rate for optimization purposes */
 	UPROPERTY(Transient)
 	float LastVigilScanTime = -1.f;
 
+	/** Current targeting presets that will be used to perform targeting requests */
 	UPROPERTY(Transient, DuplicateTransient)
 	TMap<FGameplayTag, UTargetingPreset*> CurrentTargetingPresets;
-	
+
+	/** Existing targeting request handles that are in-progress */
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, FTargetingRequestHandle> TargetingRequests;
 
 protected:
+	/** Owning player controller */
 	UPROPERTY(Transient, DuplicateTransient)
 	TObjectPtr<APlayerController> PlayerController = nullptr;
 
@@ -103,13 +113,20 @@ public:
 public:
 	virtual void BeginPlay() override;
 
+	/** Rebind the OnPossessedPawnChanged binding if the requirement changes */
 	void UpdatePawnChangedBinding();
-	
+
+	/** Listen for a change in possessed Pawn to optionally clear targeting requests and optionally update targeting presets */
 	UFUNCTION()
 	void OnPawnChanged(APawn* OldPawn, APawn* NewPawn);
 
+	/**
+	 * Retrieves new CurrentTargetingPresets
+	 * Ends any requests that are no longer current
+	 */
 	void UpdateTargetingPresets();
 
+	/** Pause or resume Vigil */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
 	void PauseVigil(bool bPaused, bool bEndTargetingRequestsOnPause = true);
 	

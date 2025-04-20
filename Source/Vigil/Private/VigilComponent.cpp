@@ -53,7 +53,7 @@ void UVigilComponent::BeginPlay()
 	PlayerController = Cast<APlayerController>(GetOwner());
 
 	// Cache the preset update mode to detect changed
-	LastTargetingPresetUpdateMode = TargetingPresetUpdateMode;
+	bLastUpdateTargetingPresetsOnPawnChange = bUpdateTargetingPresetsOnPawnChange;
 
 	// Get the targeting presets
 	CurrentTargetingPresets = GetTargetingPresets();
@@ -75,7 +75,7 @@ void UVigilComponent::UpdatePawnChangedBinding()
 			PlayerController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::OnPawnChanged);
 		}
 		
-		if (TargetingPresetUpdateMode == EVigilTargetPresetUpdateMode::PawnChanged || bEndTargetingRequestsOnPawnChange)
+		if (bUpdateTargetingPresetsOnPawnChange || bEndTargetingRequestsOnPawnChange)
 		{
 			PlayerController->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::OnPawnChanged);
 		}
@@ -85,12 +85,18 @@ void UVigilComponent::UpdatePawnChangedBinding()
 void UVigilComponent::OnPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::OnPawnChanged);
-	
+
+	// Optionally end targeting requests
 	if (bEndTargetingRequestsOnPawnChange)
 	{
 		EndAllTargetingRequests();
 	}
-	UpdateTargetingPresets();
+
+	// Optionally update targeting presets
+	if (bUpdateTargetingPresetsOnPawnChange)
+	{
+		UpdateTargetingPresets();
+	}
 }
 
 void UVigilComponent::UpdateTargetingPresets()

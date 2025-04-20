@@ -12,14 +12,6 @@ DECLARE_DELEGATE_OneParam(FOnPauseVigil, bool /* bIsPaused */);
 DECLARE_DELEGATE(FOnRequestVigil);
 
 UENUM(BlueprintType)
-enum class EVigilTargetPresetUpdateMode : uint8
-{
-	BeginPlay					UMETA(ToolTip="Only update targeting presets on BeginPlay"),
-	PawnChanged					UMETA(ToolTip="Update targeting presets when the pawn changes, and on BeginPlay"),
-	OnUpdate					UMETA(ToolTip="Update targeting presets every time Vigil updates the focus options"),
-};
-
-UENUM(BlueprintType)
 enum class EVigilTargetingSource : uint8
 {
 	Pawn						UMETA(ToolTip="Use the controlled Pawn as the targeting source"),

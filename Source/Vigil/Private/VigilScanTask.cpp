@@ -162,16 +162,16 @@ void UVigilScanTask::RequestVigil()
 	}
 	
 	// Check for changes to the targeting preset update mode
-	if (VC->TargetingPresetUpdateMode != VC->LastTargetingPresetUpdateMode)
+	if (VC->bUpdateTargetingPresetsOnPawnChange != VC->bLastUpdateTargetingPresetsOnPawnChange)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: TargetingPresetUpdateMode changed."));
 		// Remove or bind the pawn changed binding
 		VC->UpdatePawnChangedBinding();
-		VC->LastTargetingPresetUpdateMode = VC->TargetingPresetUpdateMode;
+		VC->bLastUpdateTargetingPresetsOnPawnChange = VC->bUpdateTargetingPresetsOnPawnChange;
 	}
 
 	// Optionally update the targeting presets
-	if (VC->TargetingPresetUpdateMode == EVigilTargetPresetUpdateMode::OnUpdate)
+	if (VC->bUpdateTargetingPresetsOnUpdate)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Updating targeting presets."));
 		VC->UpdateTargetingPresets();
