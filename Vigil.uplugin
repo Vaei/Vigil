@@ -1,0 +1,23 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "Vigil",
+	"Description": "Gameplay Focusing System",
+	"Category": "Gameplay",
+	"CreatedBy": "Jared Taylor (Vaei)",
+	"CreatedByURL": "https://vaei.github.io/",
+	"DocsURL": "https://github.com/Vaei/Vigil/wiki",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Vigil",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
