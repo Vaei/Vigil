@@ -17,3 +17,17 @@
 > [!TIP]
 > Suitable for both singleplayer and multiplayer games
 > <br>Supports UE5.5+
+
+
+TODO: Notes
+
+These are cliff notes for functionality
+
+Built on TargetingSystem
+
+Multiple focus channels (targeting presets)
+	So you could focus on interactables, enemy targets, friendly targets, all separately
+
+Presents weighted results instead of only the final result for optional visualization and extendable future processing
+
+Consider setting scan ability to local only instead of local predicted so only client updates the focus and saves server perf
