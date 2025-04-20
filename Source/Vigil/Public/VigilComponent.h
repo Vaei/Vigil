@@ -35,7 +35,7 @@ public:
 
 	/** If true, each Vigil request will update targeting presets before proceeding */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
-	bool bUpdateTargetingPresetsOnUpdate = true;
+	bool bUpdateTargetingPresetsOnUpdate = false;
 
 	/** If true, will update targeting presets when the owning controller's possessed pawn changes */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)

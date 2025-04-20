@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "VigilTypes.generated.h"
 
+struct FScalableFloat;
 DECLARE_LOG_CATEGORY_EXTERN(LogVigil, Log, All);
 
 DECLARE_DELEGATE_OneParam(FOnPauseVigil, bool /* bIsPaused */);
@@ -33,6 +34,43 @@ enum class EVigilNetSyncType : uint8  // Avoid having to include AbilityTask_Net
 };
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVigilSync, EVigilNetSyncType, SyncType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVigilSyncCompleted);
+
+USTRUCT(BlueprintType)
+struct VIGIL_API FVigilConeShape
+{
+	GENERATED_BODY()
+
+	FVigilConeShape(float InLength = 0.f, float InAngleWidth = 0.f, float InAngleHeight = 0.f)
+		: Length(InLength)
+		, AngleWidth(InAngleWidth)
+		, AngleHeight(InAngleHeight)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision, meta=(UIMin="0", ClampMin="0", Delta="0.1", ForceUnits="cm"))
+	float Length;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision, meta=(UIMin="0", ClampMin="0", UIMax="180", ClampMax="180", Delta="0.1", ForceUnits="Degrees"))
+	float AngleWidth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Collision, meta=(UIMin="0", ClampMin="0", UIMax="180", ClampMax="180", Delta="0.1", ForceUnits="Degrees"))
+	float AngleHeight;
+
+	bool IsPointWithinCone(const FVector& Point, const FVector& ConeOrigin, const FVector& ConeDirection) const;
+
+	FCollisionShape GetConeBoxShape() const
+	{
+		return MakeConeBoxShape(Length, AngleWidth, AngleHeight);
+	}
+	
+	FVector GetConeBoxShapeExtent() const
+	{
+		return GetConeBoxShape().GetExtent();
+	}
+	
+	static FCollisionShape MakeConeBoxShape(float Length, float AngleWidth, float AngleHeight);
+	static FCollisionShape MakeConeBoxShape(const FScalableFloat& Length, const FScalableFloat& AngleWidth, const FScalableFloat& AngleHeight);
+	static FVigilConeShape MakeConeFromScalableFloat(const FScalableFloat& Length, const FScalableFloat& AngleWidth, const FScalableFloat& AngleHeight);
+};
 
 USTRUCT(BlueprintType)
 struct VIGIL_API FVigilFocusResult

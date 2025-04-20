@@ -5,6 +5,7 @@
 
 #include "VigilComponent.h"
 #include "VigilNetSyncTask.h"
+#include "GameFramework/PlayerState.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilScanTask)
@@ -62,8 +63,22 @@ void UVigilScanTask::RequestVigil()
 		
 		// Get the owning player controller
 		const TWeakObjectPtr<AActor>& WeakOwner = Ability->GetCurrentActorInfo()->OwnerActor;
-		const APlayerController* PlayerController = WeakOwner.IsValid() ? Cast<APlayerController>(WeakOwner) : nullptr;
-
+		const APlayerController* PlayerController = nullptr;
+		if (const APawn* Pawn = Cast<APawn>(WeakOwner.Get()))
+		{
+			UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Owner is a pawn"));
+			PlayerController = Pawn->GetController<APlayerController>();
+		}
+		else if (const APlayerState* PlayerState = Cast<APlayerState>(WeakOwner.Get()))
+		{
+			UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Owner is a player state"));
+			PlayerController = PlayerState->GetPlayerController();
+		}
+		else
+		{
+			UE_LOG(LogVigil, Error, TEXT("VigilScanTask::RequestVigil: Owner is not a pawn or player state"));
+		}
+		
 		// If the player controller is not valid, wait for a bit and try again
 		if (UNLIKELY(!PlayerController))
 		{
@@ -81,7 +96,7 @@ void UVigilScanTask::RequestVigil()
 			{
 				FMessageLog ("PIE").Error(FText::Format(
 					NSLOCTEXT("VigilScanTask", "VigilComponentNotFound", "VigilComponent not found on {0}"),
-					FText::FromString(WeakOwner->GetName())));
+					FText::FromString(PlayerController->GetName())));
 			}
 #endif
 
@@ -180,11 +195,26 @@ void UVigilScanTask::RequestVigil()
 	// Get cached targeting presets
 	const TMap<FGameplayTag, UTargetingPreset*>& TargetingPresets = VC->CurrentTargetingPresets;
 	UE_LOG(LogVigil, VeryVerbose, TEXT("VigilScanTask::RequestVigil: TargetingPresets.Num(): %d"), TargetingPresets.Num());
+
+	if (TargetingPresets.Num() == 0)
+	{
+		UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: No targeting presets. [SYSTEM WAIT]"));
+		WaitForVigil(0.5f);
+		return;
+	}
+
+	bool bAwaitingCallback = false;
 	for (const auto& Entry : TargetingPresets)
 	{
 		const FGameplayTag& Tag = Entry.Key;
 		const UTargetingPreset* Preset = Entry.Value;
 
+		if (Preset->TargetingTaskSet.Tasks.IsEmpty())
+		{
+			// If the only available presets only have empty tasks Vigil will never get a callback
+			continue;
+		}
+		
 		FTargetingRequestHandle& Handle = VC->TargetingRequests.FindOrAdd(Tag);
 		Handle = TargetSubsystem->MakeTargetRequestHandle(Preset, FTargetingSourceContext {TargetingSource});
 
@@ -194,7 +224,17 @@ void UVigilScanTask::RequestVigil()
 		TargetSubsystem->StartAsyncTargetingRequestWithHandle(Handle,
 			FTargetingRequestDelegate::CreateUObject(this, &ThisClass::OnVigilComplete, Tag));
 
+		bAwaitingCallback = true;
+		
 		UE_LOG(LogVigil, VeryVerbose, TEXT("VigilScanTask::RequestVigil: Start async targeting for TargetingPresets[%s]: %s"), *Tag.ToString(), *GetNameSafe(Preset));
+	}
+
+	if (!bAwaitingCallback)
+	{
+		// Failed to start any async targeting requests
+		UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty!. [SYSTEM WAIT]"));
+		WaitForVigil(0.5f);
+		return;
 	}
 
 #if UE_ENABLE_DEBUG_DRAWING

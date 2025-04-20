@@ -37,3 +37,7 @@ Consider setting scan ability to local only instead of local predicted so only c
 `p.Vigil.Debug.Draw`??
 
 https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-targeting-system-debugging-in-unreal-engine
+
+Set collision channel to custom channel
+
+ts.debug.EnableTargetingDebugging
