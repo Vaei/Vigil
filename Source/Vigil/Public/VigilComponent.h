@@ -16,7 +16,7 @@
  * Interfaces with the passive VigilScanAbility and handles resulting data
  * Subclass this to add custom functionality
  */
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VIGIL_API UVigilComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -71,6 +71,13 @@ public:
 	 * Otherwise, the vigil task would not ever receive the callback and know to continue
 	 */
 	FOnRequestVigil OnRequestVigil;
+
+	/** Request Vigil to re-sync */
+	FOnVigilSync OnVigilNetSync;
+
+	/** Callback for when RequestResyncVigil() completes */
+	UPROPERTY(BlueprintAssignable, Category=Vigil)
+	FOnVigilSyncCompleted OnVigilNetSyncCompleted;
 	
 public:
 	UVigilComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
@@ -109,14 +116,31 @@ public:
 	/**
 	 * End all targeting requests that match the PresetTag
 	 * If PresetTag is empty then all targeting requests will be ended
+	 * @param PresetTag The tag of the preset to end targeting requests for, or all if tag is none
+	 * @param bNotifyVigil If true, will notify the VigilScanTask to end its targeting requests
+	 * @warning If Vigil is not notified, it could stop running and never resume, advanced use only!
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(AdvancedDisplay="bNotifyVigil"))
+	void EndTargetingRequests(const FGameplayTag& PresetTag, bool bNotifyVigil = true);
+
+	/**
+	 * End all targeting requests
+	 * @param bNotifyVigil If true, will notify the VigilScanTask to end its targeting requests
+	 * @warning If Vigil is not notified, it could stop running and never resume, advanced use only!
 	 */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
-	void EndTargetingRequests(const FGameplayTag& PresetTag);
-
-	/** End all targeting requests */
-	UFUNCTION(BlueprintCallable, Category=Vigil)
-	void EndAllTargetingRequests()
+	void EndAllTargetingRequests(bool bNotifyVigil = true)
 	{
-		EndTargetingRequests(FGameplayTag::EmptyTag);
+		EndTargetingRequests(FGameplayTag::EmptyTag, bNotifyVigil);
 	}
+
+	/**
+	 * Call to end all targeting requests, then perform a WaitNetSync, and finally resume targeting
+	 * Because Vigil exists perpetually and runs on timers, synchronization is never guaranteed
+	 * You may want to use this before anything important, and bind to OnVigilReSync to know when it's done
+	 *
+	 * If Vigil ability is LocalOnly then calls from this function will be ignored completely by Vigil
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil)
+	void RequestResyncVigil(EVigilNetSyncType SyncType = EVigilNetSyncType::OnlyServerWait);
 };

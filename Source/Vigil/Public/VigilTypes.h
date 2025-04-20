@@ -27,6 +27,21 @@ enum class EVigilTargetingSource : uint8
 	PlayerController			UMETA(ToolTip="Use the PlayerController as the targeting source"),
 };
 
+UENUM(BlueprintType)
+enum class EVigilNetSyncType : uint8  // Avoid having to include AbilityTask_NetworkSyncPoint.h
+{
+	/** Both client and server wait until the other signals */
+	BothWait,
+
+	/** Only server will wait for the client signal. Client will signal and immediately continue without waiting to hear from Server. */
+	OnlyServerWait,
+
+	/** Only client will wait for the server signal. Server will signal and immediately continue without waiting to hear from Client. */
+	OnlyClientWait	
+};
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVigilSync, EVigilNetSyncType, SyncType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVigilSyncCompleted);
+
 USTRUCT(BlueprintType)
 struct VIGIL_API FVigilFocusResult
 {
@@ -47,5 +62,4 @@ struct VIGIL_API FVigilFocusResult
 	UPROPERTY(BlueprintReadOnly, Category=Vigil)
 	float Score;
 };
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnVigilComplete, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, const TArray<FVigilFocusResult>&, Results);

@@ -4,6 +4,7 @@
 #include "VigilScanTask.h"
 
 #include "VigilComponent.h"
+#include "VigilNetSyncTask.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilScanTask)
@@ -102,6 +103,13 @@ void UVigilScanTask::RequestVigil()
 		{
 			UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Binding to OnRequestVigil"));
 			VC->OnRequestVigil.BindUObject(this, &ThisClass::OnRequestVigil);
+		}
+
+		// Bind to net sync delegate
+		if (!VC->OnVigilNetSync.IsAlreadyBound(this, &ThisClass::OnRequestNetSync))
+		{
+			UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::RequestVigil: Binding to OnVigilRequestNetSync"));
+			VC->OnVigilNetSync.AddDynamic(this, &ThisClass::OnRequestNetSync);
 		}
 	}
 
@@ -311,6 +319,51 @@ void UVigilScanTask::OnRequestVigil()
 	}
 }
 
+void UVigilScanTask::OnRequestNetSync(EVigilNetSyncType SyncType)
+{
+	if (!IsValid(Ability) || !IsValid(GetOwnerActor()) || !VC.IsValid())
+	{
+		return;
+	}
+
+	// Don't net sync if the ability doesn't run on both server and client
+	if (Ability->GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::LocalOnly ||
+		Ability->GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::ServerOnly)
+	{
+		UE_LOG(LogVigil, Verbose, TEXT("VigilScanTask::OnRequestNetSync: Invalid net execution policy."));
+		return;
+	}
+
+	// End targeting requests until we sync
+	VC->EndAllTargetingRequests(false);
+
+	// Wait net sync
+	UVigilNetSyncTask* WaitNetSync = UVigilNetSyncTask::WaitNetSync(Ability, SyncType);
+	WaitNetSync->OnSync.BindUObject(this, &ThisClass::OnNetSync);
+	WaitNetSync->ReadyForActivation();
+
+	// Track active sync points to prevent them getting GC'd prematurely
+	SyncTasks.Add(WaitNetSync);
+}
+
+void UVigilScanTask::OnNetSync(UVigilNetSyncTask* SyncTask)
+{
+	// Remove finished net sync
+	if (IsValid(SyncTask))
+	{
+		SyncTasks.RemoveSingle(SyncTask);
+	}
+
+	// Notify the VC that we're done
+	if (VC.IsValid() && VC->OnVigilNetSyncCompleted.IsBound())
+	{
+		VC->OnVigilNetSyncCompleted.Broadcast();
+	}
+
+	// Request the next Vigil
+	RequestVigil();
+}
+
 void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 {
 	if (IsValid(GetWorld()))
@@ -327,6 +380,18 @@ void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 			{
 				VC->OnRequestVigil.Unbind();
 			}
+			if (VC->OnVigilNetSync.IsAlreadyBound(this, &ThisClass::OnRequestNetSync))
+			{
+				VC->OnVigilNetSync.RemoveDynamic(this, &ThisClass::OnRequestNetSync);
+			}
+		}
+	}
+
+	for (UVigilNetSyncTask* WaitNetSync : SyncTasks)
+	{
+		if (IsValid(WaitNetSync))
+		{
+			WaitNetSync->EndTask();
 		}
 	}
 	

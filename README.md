@@ -31,3 +31,9 @@ Multiple focus channels (targeting presets)
 Presents weighted results instead of only the final result for optional visualization and extendable future processing
 
 Consider setting scan ability to local only instead of local predicted so only client updates the focus and saves server perf
+
+`Log LogVigil Verbose` / VeryVerbose
+
+`p.Vigil.Debug.Draw`??
+
+https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-targeting-system-debugging-in-unreal-engine

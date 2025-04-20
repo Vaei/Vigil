@@ -116,12 +116,12 @@ void UVigilComponent::PauseVigil(bool bPaused, bool bEndTargetingRequestsOnPause
 	
 	if (bEndTargetingRequestsOnPause && bPaused)
 	{
-		EndAllTargetingRequests();
+		EndAllTargetingRequests(false);
 	}
 	(void)OnPauseVigil.ExecuteIfBound(bPaused);
 }
 
-void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag)
+void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag, bool bNotifyVigil)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::EndTargetingRequests);
 	
@@ -160,8 +160,16 @@ void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag)
 
 	// If we removed all requests, call the callback to tell Vigil to update itself
 	// It won't receive any callback if there is no pending request, so we need to trigger this
-	if (TargetingRequests.Num() == 0)
+	if (TargetingRequests.Num() == 0 && bNotifyVigil)
 	{
 		(void)OnRequestVigil.ExecuteIfBound();
+	}
+}
+
+void UVigilComponent::RequestResyncVigil(EVigilNetSyncType SyncType)
+{
+	if (OnVigilNetSync.IsBound())
+	{
+		OnVigilNetSync.Broadcast(SyncType);
 	}
 }
