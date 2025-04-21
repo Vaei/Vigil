@@ -269,8 +269,6 @@ void UVigilTargetingStatics::VigilDrawDebugResults(APlayerController* PC, const 
 			FMatrix LocatorMatrix = FRotationMatrix::MakeFromX(WorldNormal);
 			LocatorMatrix.SetOrigin(WorldLocation);
 			DrawDebugCircle(PC->GetWorld(), LocatorMatrix, LocatorRadius, 16, LocatorColor, false, DrawDuration, 10, 2.f);
-			// DrawDebugCrosshairs(PC->GetWorld(), WorldLocation, WorldNormal.Rotation(), LocatorRadius, LocatorColor, false, DrawDuration, 10);
-			// DrawDebugSphere(PC->GetWorld(), WorldLocation, LocatorRadius, 3, LocatorColor, false, DrawDuration, 10, 1.f);
 		}
 	}
 #endif
