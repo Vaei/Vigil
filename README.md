@@ -8,7 +8,7 @@
 > **Gameplay Focus System**
 > <br>Robust Data-Driven Asynchronous Focus Targeting
 > <br>With optional Net-Prediction
-> <br>And its **Free!**
+> <br>And its **FREE!**
 
 > [!WARNING]
 > Use `git clone` instead of downloading as a zip, or you will not receive content
