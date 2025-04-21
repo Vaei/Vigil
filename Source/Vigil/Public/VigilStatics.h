@@ -59,7 +59,7 @@ public:
 	* Performs a box trace and draws the cone shape
 	* For debugging only, results will never be useful
 	*/
-	UFUNCTION(BlueprintCallable, Category = "Collision", meta = (DevelopmentOnly, bIgnoreSelf = "true", WorldContext="WorldContextObject", AutoCreateRefTerm = "ActorsToIgnore", DisplayName = "Multi Cone Trace By Channel", AdvancedDisplay="TraceColor,TraceHitColor,DrawTime", Keywords="sweep"))
+	// UFUNCTION(BlueprintCallable, Category = "Collision", meta = (DevelopmentOnly, bIgnoreSelf = "true", WorldContext="WorldContextObject", AutoCreateRefTerm = "ActorsToIgnore", DisplayName = "Multi Cone Trace By Channel", AdvancedDisplay="TraceColor,TraceHitColor,DrawTime", Keywords="sweep"))
 	static bool VigilConeTraceDebug(const UObject* WorldContextObject, const FVector Start, const FVector InEnd, FVigilConeShape Cone,
 		const FRotator Orientation, ETraceTypeQuery TraceChannel, bool bTraceComplex, const TArray<AActor*>& ActorsToIgnore,
 		TArray<FHitResult>& OutHits, bool bIgnoreSelf, FLinearColor TraceColor = FLinearColor::Red,
