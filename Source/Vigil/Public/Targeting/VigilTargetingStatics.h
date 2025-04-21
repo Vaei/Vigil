@@ -61,4 +61,16 @@ public:
 	static void VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, float DrawDuration=0.05f, bool bLocatorAngle = true,
 		bool bLocatorDistance = false);
+
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Add Visual Logger Results", DevelopmentOnly))
+	static void VigilAddVisualLoggerResults(APlayerController* PC, const FGameplayTag& FocusTag,
+		const TArray<FVigilFocusResult>& FocusResults, bool bLocatorAngle = true,
+		bool bLocatorDistance = false);
+
+	static void VigilDrawDebugResults_Internal(APlayerController* PC, const FGameplayTag& FocusTag,
+		const TArray<FVigilFocusResult>& FocusResults,
+		TFunction<void(const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)> DrawStringFunc,
+		TFunction<void(const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)> DrawCircleFunc,
+		bool bLocatorAngle = true,
+		bool bLocatorDistance = false, float DrawDuration=0.05f);
 };

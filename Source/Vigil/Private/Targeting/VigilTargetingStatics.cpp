@@ -188,8 +188,56 @@ float UVigilTargetingStatics::GetAngleToVigilTarget(const FHitResult& HitResult,
 void UVigilTargetingStatics::VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
 	const TArray<FVigilFocusResult>& FocusResults, float DrawDuration, bool bLocatorAngle, bool bLocatorDistance)
 {
-#if !UE_BUILD_SHIPPING
+#if UE_ENABLE_DEBUG_DRAWING
 	if (!IsValid(PC) || !PC->GetHUD() || !PC->GetWorld())
+	{
+		return;
+	}
+
+	VigilDrawDebugResults_Internal(PC, FocusTag, FocusResults,
+		[](const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)
+		{
+			DrawDebugString(World, Location, Info, nullptr, Color, Duration, true, 1.f);
+		},
+		[](const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)
+		{
+			DrawDebugCircle(World, Matrix, Radius, 32, Color, false, Duration, 10, 2.f);
+		},
+		bLocatorAngle, bLocatorDistance, DrawDuration);
+#endif
+}
+
+void UVigilTargetingStatics::VigilAddVisualLoggerResults(APlayerController* PC, const FGameplayTag& FocusTag,
+	const TArray<FVigilFocusResult>& FocusResults, bool bLocatorAngle, bool bLocatorDistance)
+{
+#if ENABLE_VISUAL_LOG
+	if (!IsValid(PC) || !PC->GetWorld())
+	{
+		return;
+	}
+
+	VigilDrawDebugResults_Internal(PC, FocusTag, FocusResults,
+	[PC](const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)
+	{
+		UE_VLOG_LOCATION(PC, LogVigil, Log, Location, 2.f, Color, TEXT("%s"), *Info);
+	},
+	[PC](const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)
+	{
+		UE_VLOG_CIRCLE_THICK(PC, LogVigil, Log, Matrix.GetOrigin(), Matrix.GetScaledAxis(EAxis::X), Radius * 1.25f, Color, 4.f, TEXT(""));
+	},
+	bLocatorAngle, bLocatorDistance, 0.f);
+#endif
+}
+
+void UVigilTargetingStatics::VigilDrawDebugResults_Internal(APlayerController* PC, const FGameplayTag& FocusTag,
+	const TArray<FVigilFocusResult>& FocusResults,
+	TFunction<void(const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float
+	Duration)> DrawStringFunc,
+	TFunction<void(const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)>
+	DrawCircleFunc, bool bLocatorAngle, bool bLocatorDistance, float DrawDuration)
+{
+#if UE_ENABLE_DEBUG_DRAWING
+	if (!IsValid(PC) || !PC->GetWorld())
 	{
 		return;
 	}
@@ -236,7 +284,8 @@ void UVigilTargetingStatics::VigilDrawDebugResults(APlayerController* PC, const 
 		const FVector InfoLocation = WorldLocation + (Right * Offset) + (Up * -Offset);
 
 		// Draw the text
-		DrawDebugString(PC->GetWorld(), InfoLocation, Info, nullptr, GetColor(i), DrawDuration, true, 1.f);
+		DrawStringFunc(PC->GetWorld(), InfoLocation, Info, GetColor(i), DrawDuration);
+		// DrawDebugString(PC->GetWorld(), InfoLocation, Info, nullptr, GetColor(i), DrawDuration, true, 1.f);
 
 		// Draw a locator
 		if (bLocatorAngle || bLocatorDistance)
@@ -268,7 +317,8 @@ void UVigilTargetingStatics::VigilDrawDebugResults(APlayerController* PC, const 
 			const FColor LocatorColor = (FLinearColor(GetColor(i)) * 0.5f).ToFColor(true);
 			FMatrix LocatorMatrix = FRotationMatrix::MakeFromX(WorldNormal);
 			LocatorMatrix.SetOrigin(WorldLocation);
-			DrawDebugCircle(PC->GetWorld(), LocatorMatrix, LocatorRadius, 16, LocatorColor, false, DrawDuration, 10, 2.f);
+			DrawCircleFunc(PC->GetWorld(), LocatorMatrix, LocatorRadius, LocatorColor, DrawDuration);
+			// DrawDebugCircle(PC->GetWorld(), LocatorMatrix, LocatorRadius, 16, LocatorColor, false, DrawDuration, 10, 2.f);
 		}
 	}
 #endif
