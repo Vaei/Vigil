@@ -22,7 +22,7 @@ bool FVigilConeShape::IsPointWithinCone(const FVector& Point, const FVector& Con
 
 	// Local Y/Z axes for angle calc
 	FVector Right, Up;
-	ConeDirection.FindBestAxisVectors(Right, Up);
+	ConeDirection.FindBestAxisVectors(Up, Right);
 
 	const float RightDist = FVector::DotProduct(ToPoint, Right);
 	const float UpDist    = FVector::DotProduct(ToPoint, Up);

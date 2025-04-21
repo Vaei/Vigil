@@ -345,12 +345,12 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 					break;
 				}
 
-				const FVector SourceDirection = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized().Vector();
+				const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
+				const FVector SourceDirection = SourceRotation.Vector();
 				if (!GetConeShape().IsPointWithinCone(TargetLocation, SourceLocation, SourceDirection))
 				{
 					continue;
-				}
-			}
+				}}
 
 			bool bAddResult = true;
 			for (const FTargetingDefaultResultData& ResultData : TargetingResults.TargetResults)
