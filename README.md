@@ -5,8 +5,8 @@
 > <br>You should not use it yet
 
 > [!IMPORTANT]
-> **Gameplay Focusing System**
-> <br>Robust Data-Driven Focus Targeting
+> **Gameplay Focus System**
+> <br>Robust Data-Driven Asynchronous Focus Targeting
 > <br>With optional Net-Prediction
 > <br>And its **Free!**
 
