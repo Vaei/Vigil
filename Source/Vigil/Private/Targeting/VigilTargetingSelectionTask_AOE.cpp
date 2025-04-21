@@ -18,12 +18,20 @@ DEFINE_LOG_CATEGORY_STATIC(LogVigilTargetingSystem, Log, All);
 UVigilTargetingSelectionTask_AOE::UVigilTargetingSelectionTask_AOE(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	CollisionChannel = ECC_PhysicsBody;
+	CollisionChannel = ECC_Visibility;
 	ConeTargetCollisionChannel = ECC_Visibility;
-	bUseRelativeLocationOffset = false;
-	bIgnoreSourceActor = false;
+	bUseRelativeLocationOffset = true;
+	bIgnoreSourceActor = true;
 	bIgnoreInstigatorActor = false;
 	bTraceComplex = false;
+
+	LocationSource = EVigilTargetLocationSource_AOE::Camera;
+	RotationSource = EVigilTargetRotationSource_AOE::ViewRotation;
+	ConeTargetSource = EVigilConeTargetLocationSource_AOE::Component;
+
+	ConeLength = 1800.f;
+	ConeAngleWidth = 25.f;
+	ConeAngleHeight = 35.f;
 }
 
 FVector UVigilTargetingSelectionTask_AOE::GetSourceLocation_Implementation(
@@ -66,6 +74,11 @@ FVector UVigilTargetingSelectionTask_AOE::GetSourceOffset_Implementation(
 	if (!bUseRelativeLocationOffset)
 	{
 		return DefaultSourceLocationOffset;
+	}
+
+	if (DefaultSourceLocationOffset.IsZero())
+	{
+		return FVector::ZeroVector;
 	}
 	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))

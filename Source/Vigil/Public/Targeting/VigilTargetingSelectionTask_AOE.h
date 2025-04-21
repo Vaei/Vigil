@@ -69,13 +69,13 @@ protected:
 	TEnumAsByte<ECollisionChannel> ConeTargetCollisionChannel;
 	
 	UPROPERTY(EditAnywhere, Category="Target AOE")
-	EVigilTargetLocationSource_AOE LocationSource = EVigilTargetLocationSource_AOE::Actor;
+	EVigilTargetLocationSource_AOE LocationSource;
 
 	UPROPERTY(EditAnywhere, Category="Target AOE")
-	EVigilTargetRotationSource_AOE RotationSource = EVigilTargetRotationSource_AOE::Actor;
+	EVigilTargetRotationSource_AOE RotationSource;
 
 	UPROPERTY(EditAnywhere, Category="Target AOE", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
-	EVigilConeTargetLocationSource_AOE ConeTargetSource = EVigilConeTargetLocationSource_AOE::Component;
+	EVigilConeTargetLocationSource_AOE ConeTargetSource;
 	
 	/** The default source location offset used by GetSourceOffset */
 	UPROPERTY(EditAnywhere, Category="Target AOE")
@@ -109,13 +109,13 @@ protected:
 	EVigilTargetingShape_AOE ShapeType = EVigilTargetingShape_AOE::Cone;
 
 	UPROPERTY(EditAnywhere, Category="Target AOE Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
-	FScalableFloat ConeLength = 0.0f;
+	FScalableFloat ConeLength;
 
 	UPROPERTY(EditAnywhere, Category="Target AOE Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
 	FScalableFloat ConeAngleWidth = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category="Target AOE Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
-	FScalableFloat ConeAngleHeight = 0.0f;
+	FScalableFloat ConeAngleHeight;
 
 	FVigilConeShape GetConeShape() const
 	{

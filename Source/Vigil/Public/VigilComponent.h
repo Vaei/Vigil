@@ -70,7 +70,7 @@ protected:
 public:
 	/** Delegate called when a targeting request is completed, populated with targeting results */
 	UPROPERTY(BlueprintAssignable, Category=Vigil)
-	FOnVigilComplete OnVigilComplete;
+	FOnVigilComplete OnVigilTargetsReady;
 
 	/** VigilScanTask binds to this to pause itself when executed */
 	FOnPauseVigil OnPauseVigil;
