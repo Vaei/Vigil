@@ -428,7 +428,11 @@ void UVigilTargetingSelectionTask::DebugDrawBoundingVolume(const FTargetingReque
 	const FCollisionShape CollisionShape = GetCollisionShape();
 
 	constexpr bool bPersistentLines = false;
+#if UE_5_04_OR_LATER
 	const float LifeTime = UTargetingSubsystem::GetOverrideTargetingLifeTime();
+#else
+	constexpr float LifeTime = 0.f;
+#endif
 	constexpr uint8 DepthPriority = 0;
 	constexpr float Thickness = 2.0f;
 

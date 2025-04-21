@@ -219,7 +219,7 @@ void UVigilScanTask::RequestVigil()
 		const FGameplayTag& Tag = Entry.Key;
 		const UTargetingPreset* Preset = Entry.Value;
 
-		if (Preset->TargetingTaskSet.Tasks.IsEmpty())
+		if (Preset->GetTargetingTaskSet()->Tasks.IsEmpty())
 		{
 			// If the only available presets only have empty tasks Vigil will never get a callback
 			continue;

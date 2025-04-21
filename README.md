@@ -32,6 +32,8 @@ Presents weighted results instead of only the final result for optional visualiz
 
 Consider setting scan ability to local only instead of local predicted so only client updates the focus and saves server perf
 
+remove gas dependency tips i.e. change task remove ability run from PC
+
 `Log LogVigil Verbose` / VeryVerbose
 
 `p.Vigil.Debug.Draw`??

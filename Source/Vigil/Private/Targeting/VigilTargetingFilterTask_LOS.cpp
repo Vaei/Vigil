@@ -123,15 +123,19 @@ bool UVigilTargetingFilterTask_LOS::ShouldFilterTarget(const FTargetingRequestHa
 		if (FVigilCVars::bVigilFilterDebug)
 		{
 			const FColor& DebugColor = Hit.bBlockingHit ? FColor::Red : FColor::Green;
+#if UE_5_04_OR_LATER
+			const float LifeTime = UTargetingSubsystem::GetOverrideTargetingLifeTime();
+#else
+			constexpr float LifeTime = 0.f;
+#endif
 			if (bSphereTrace)
 			{
-				DrawDebugSphere(World, Hit.ImpactPoint, TraceRadius, 12, DebugColor, false,
-					UTargetingSubsystem::GetOverrideTargetingLifeTime());
+				DrawDebugSphere(World, Hit.ImpactPoint, TraceRadius, 12, DebugColor, false, LifeTime);
 			}
 			else
 			{
 				DrawDebugLine(World, SourceLocation, Hit.ImpactPoint, DebugColor, false,
-					UTargetingSubsystem::GetOverrideTargetingLifeTime(), 0, 1.f);
+					LifeTime, 0, 1.f);
 			}
 		}
 #endif
