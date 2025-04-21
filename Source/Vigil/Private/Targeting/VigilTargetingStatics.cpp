@@ -3,6 +3,8 @@
 
 #include "Targeting/VigilTargetingStatics.h"
 
+#include "VigilTypes.h"
+#include "GameFramework/HUD.h"
 #include "Targeting/VigilTargetingTypes.h"
 #include "Types/TargetingSystemTypes.h"
 #include "GameFramework/Pawn.h"
@@ -181,4 +183,95 @@ float UVigilTargetingStatics::GetAngleToVigilTarget(const FHitResult& HitResult,
 	const float AngleDiff = FMath::RadiansToDegrees(FMath::Acos(AngleDot));
 	NormalizedAngle = FMath::Clamp(AngleDiff / MaxAngle, 0.f, 1.f);
 	return AngleDiff;
+}
+
+void UVigilTargetingStatics::VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
+	const TArray<FVigilFocusResult>& FocusResults, float DrawDuration, bool bLocatorAngle, bool bLocatorDistance)
+{
+#if !UE_BUILD_SHIPPING
+	if (!IsValid(PC) || !PC->GetHUD() || !PC->GetWorld())
+	{
+		return;
+	}
+
+	for (int32 i=0; i < FocusResults.Num(); i++)
+	{
+		const FVigilFocusResult& FocusResult = FocusResults[i];
+		if (!FocusResult.HitResult.GetActor() || !FocusResult.HitResult.GetComponent())
+		{
+			continue;
+		}
+
+		const FString Tag = FocusResult.FocusTag.ToString();
+		const FString Score = FString::Printf(TEXT("P: %d Score:%.1f"), i, FocusResult.Score);
+
+		float NormalizedAngle, MaxAngle, NormalizedDistance, MaxDistance;
+		const float AngleValue = GetAngleToVigilTarget(FocusResult.HitResult, NormalizedAngle, MaxAngle);
+		const float DistanceValue = GetDistanceToVigilTarget(FocusResult.HitResult, NormalizedDistance, MaxDistance);
+
+		const FString Angle = FString::Printf(TEXT("A: %.1fº / %.1fº (%.1f%%)"), AngleValue, MaxAngle, NormalizedAngle);
+		const FString Distance = FString::Printf(TEXT("D: %.1f / %.1f (%.1f%%)"), DistanceValue, MaxDistance, NormalizedDistance);
+
+		const FString Info = FString::Printf(TEXT("%s\n%s\n%s\n%s"), *Tag, *Score, *Angle, *Distance);
+
+		static constexpr uint8 CV = 200;
+		static constexpr FColor PrimaryColor = FColor(0, CV, 0);
+		static constexpr FColor SecondaryColor = FColor(CV, CV, 0);
+		static constexpr FColor TertiaryColor = FColor(CV, CV / 2, 0);
+		static constexpr FColor AltColor = FColor(CV, CV, CV);
+		static auto GetColor = [](int32 Priority) -> FColor
+		{
+			if (Priority == 0) return PrimaryColor;
+			if (Priority == 1) return SecondaryColor;
+			if (Priority == 2) return TertiaryColor;
+			return AltColor;
+		};
+
+		// Offset the text location to the bottom-right
+		const FVector Right = FocusResult.HitResult.GetComponent()->GetRightVector();
+		const FVector Up = FocusResult.HitResult.GetComponent()->GetUpVector();
+		const FVector WorldLocation = FocusResult.HitResult.ImpactPoint;
+
+		static constexpr float Offset = 5.f;
+		const FVector InfoLocation = WorldLocation + (Right * Offset) + (Up * -Offset);
+
+		// Draw the text
+		DrawDebugString(PC->GetWorld(), InfoLocation, Info, nullptr, GetColor(i), DrawDuration, true, 1.f);
+
+		// Draw a locator
+		if (bLocatorAngle || bLocatorDistance)
+		{
+			// Estimate the size to draw a locator at based on the bounds of the target
+			const float Radius = FocusResult.HitResult.GetActor() ? FocusResult.HitResult.GetActor()->GetSimpleCollisionRadius() : 0.f;
+			const float SmallRadius = Radius * 0.25f;
+			const float BigRadius = Radius * 0.8f;
+
+			// Scale the radius based on the angle
+			const float AngleRadius = FMath::GetMappedRangeValueClamped(FVector2D(0.f, 0.5f), FVector2D(SmallRadius, BigRadius), NormalizedAngle);
+			const float DistanceRadius = FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(SmallRadius, BigRadius), NormalizedDistance);
+			float LocatorRadius;
+			if (bLocatorAngle && bLocatorDistance)
+			{
+				LocatorRadius = (AngleRadius + DistanceRadius) * 0.5f;
+			}
+			else if (bLocatorAngle)
+			{
+				LocatorRadius = AngleRadius;
+			}
+			else
+			{
+				LocatorRadius = DistanceRadius;
+			}
+
+			// Draw the locator
+			const FVector WorldNormal = FocusResult.HitResult.Normal;
+			const FColor LocatorColor = (FLinearColor(GetColor(i)) * 0.5f).ToFColor(true);
+			FMatrix LocatorMatrix = FRotationMatrix::MakeFromX(WorldNormal);
+			LocatorMatrix.SetOrigin(WorldLocation);
+			DrawDebugCircle(PC->GetWorld(), LocatorMatrix, LocatorRadius, 16, LocatorColor, false, DrawDuration, 10, 2.f);
+			// DrawDebugCrosshairs(PC->GetWorld(), WorldLocation, WorldNormal.Rotation(), LocatorRadius, LocatorColor, false, DrawDuration, 10);
+			// DrawDebugSphere(PC->GetWorld(), WorldLocation, LocatorRadius, 3, LocatorColor, false, DrawDuration, 10, 1.f);
+		}
+	}
+#endif
 }

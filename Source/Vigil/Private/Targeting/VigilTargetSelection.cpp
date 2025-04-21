@@ -355,9 +355,6 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 					break;
 				}
 
-				// The default extent is twice the size of a shape, so we need to divide it by 2
-				ResultData->HitResult.Time *= 0.5f;
-
 				// Store the max distance into PenetrationDepth based on the shape type
 				switch (ShapeType)
 				{
@@ -378,7 +375,6 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 					ResultData->HitResult.PenetrationDepth = Radius.GetValue();
 					break;
 				}
-				ResultData->HitResult.PenetrationDepth *= 0.5f;
 			}
 		}
 
