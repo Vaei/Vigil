@@ -8,6 +8,7 @@
 
 #include "VigilStatics.generated.h"
 
+class UVigilComponent;
 struct FScalableFloat;
 
 /**
@@ -18,6 +19,15 @@ class VIGIL_API UVigilStatics : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+public:
+	/**
+	 * For Pawn, PlayerController, PlayerState
+	 * Attempts to find a Vigil Component for the given Actor
+	 * Will return nullptr on SimulatedProxy
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil)
+	static UVigilComponent* FindVigilComponent(AActor* Actor);
+	
 public:
 	UFUNCTION(BlueprintCallable, Category="Rendering|Debug", meta=(WorldContext="WorldContextObject", DevelopmentOnly))
 	static bool IsPointWithinCone(const FVector& Point, const FVector ConeOrigin, const FVector& ConeDirection, FVigilConeShape Cone);

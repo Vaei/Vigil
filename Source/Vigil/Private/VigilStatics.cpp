@@ -3,11 +3,41 @@
 
 #include "VigilStatics.h"
 
-#include "PhysicsEngine/PhysicsSettings.h"
 #include "Engine/Engine.h"
 #include "DrawDebugHelpers.h"
+#include "VigilComponent.h"
+#include "GameFramework/PlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilStatics)
+
+UVigilComponent* UVigilStatics::FindVigilComponent(AActor* Actor)
+{
+	// Only Local and Authority has a PlayerController
+	if (Actor->GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		return nullptr;
+	}
+	
+	if (const APawn* Pawn = Cast<APawn>(Actor))
+	{
+		if (const APlayerController* PlayerController = Pawn->GetController<APlayerController>())
+		{
+			return PlayerController->FindComponentByClass<UVigilComponent>();
+		}
+	}
+	else if (const APlayerState* PlayerState = Cast<APlayerState>(Actor))
+	{
+		if (const APlayerController* PlayerController = PlayerState->GetPlayerController())
+		{
+			return PlayerController->FindComponentByClass<UVigilComponent>();
+		}
+	}
+	else if (const APlayerController* PlayerController = Cast<APlayerController>(Actor))
+	{
+		return PlayerController->FindComponentByClass<UVigilComponent>();
+	}
+	return nullptr;
+}
 
 bool UVigilStatics::IsPointWithinCone(const FVector& Point, const FVector ConeOrigin, const FVector& ConeDirection,
 	FVigilConeShape Cone)
