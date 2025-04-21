@@ -6,14 +6,14 @@
 #include "VigilTypes.h"
 #include "Targeting/VigilTargetingTypes.h"
 #include "Tasks/TargetingSelectionTask_AOE.h"
-#include "VigilTargetingSelectionTask.generated.h"
+#include "VigilTargetSelection.generated.h"
 
 /**
  * Extend the shapes to include a cone
  * Adds location and rotation sources
  */
-UCLASS(Blueprintable)
-class VIGIL_API UVigilTargetingSelectionTask : public UTargetingTask
+UCLASS(Blueprintable, DisplayName="Vigil Target Selection")
+class VIGIL_API UVigilTargetSelection : public UTargetingTask
 {
 	GENERATED_BODY()
 
@@ -111,7 +111,7 @@ protected:
 	FName ComponentTag = NAME_None;
 	
 public:
-	UVigilTargetingSelectionTask(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UVigilTargetSelection(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
 	/** Native Event to get the source location for the AOE */
@@ -145,8 +145,11 @@ protected:
 	void HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle, FOverlapDatum& InOverlapDatum,
 		FTargetingRequestHandle TargetingHandle) const;
 
-	/** Method to take the overlap results and store them in the targeting result data */
-	void ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle, const TArray<FOverlapResult>& Overlaps) const;
+	/**
+	 * Method to take the overlap results and store them in the targeting result data
+	 * @return Num valid results
+	 */
+	int32 ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle, const TArray<FOverlapResult>& Overlaps) const;
 	
 protected:
 	/** Helper method to build the Collision Shape */
@@ -161,7 +164,7 @@ protected:
 public:
 	/** Debug draws the outlines of the set shape type. */
 	void DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle, const FColor& Color,
-		const FOverlapDatum* OverlapDatum = nullptr) const;
+		const FColor& ColorAlt, const FOverlapDatum* OverlapDatum = nullptr) const;
 
 #if UE_ENABLE_DEBUG_DRAWING
 protected:

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Jared Taylor
 
 
-#include "Targeting/VigilTargetingFilterTask_LOS.h"
+#include "Filtering/VigilFilter_LOS.h"
 
 #include "Targeting/VigilTargetingStatics.h"
 #include "TargetingSystem/TargetingSubsystem.h"
@@ -11,7 +11,7 @@
 #include "Engine/World.h"
 #include "System/VigilVersioning.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingFilterTask_LOS)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilFilter_LOS)
 
 namespace FVigilCVars
 {
@@ -26,7 +26,7 @@ namespace FVigilCVars
 #endif
 }
 
-UVigilTargetingFilterTask_LOS::UVigilTargetingFilterTask_LOS(const FObjectInitializer& ObjectInitializer)
+UVigilFilter_LOS::UVigilFilter_LOS(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CollisionChannel = ECC_Visibility;
@@ -40,7 +40,7 @@ UVigilTargetingFilterTask_LOS::UVigilTargetingFilterTask_LOS(const FObjectInitia
 	bUseRelativeLocationOffset = true;
 }
 
-bool UVigilTargetingFilterTask_LOS::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle,
+bool UVigilFilter_LOS::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle,
 	const FTargetingDefaultResultData& TargetData) const
 {
 	const UWorld* World = GetSourceContextWorld(TargetingHandle);
@@ -161,20 +161,20 @@ bool UVigilTargetingFilterTask_LOS::ShouldFilterTarget(const FTargetingRequestHa
 	return true;
 }
 
-void UVigilTargetingFilterTask_LOS::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
+void UVigilFilter_LOS::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
 	FCollisionQueryParams& OutParams) const
 {
 	UVigilTargetingStatics::InitCollisionParams(TargetingHandle, OutParams, bIgnoreSourceActor,
 		bIgnoreInstigatorActor, bTraceComplex);
 }
 
-FVector UVigilTargetingFilterTask_LOS::GetSourceLocation_Implementation(
+FVector UVigilFilter_LOS::GetSourceLocation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceLocation(TargetingHandle, LocationSource);
 }
 
-FVector UVigilTargetingFilterTask_LOS::GetSourceOffset_Implementation(
+FVector UVigilFilter_LOS::GetSourceOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceOffset(TargetingHandle, LocationSource, DefaultSourceLocationOffset,

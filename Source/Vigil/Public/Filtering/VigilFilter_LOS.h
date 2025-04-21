@@ -7,13 +7,13 @@
 #include "Targeting/VigilTargetingTypes.h"
 #include "Engine/CollisionProfile.h"
 #include "CollisionQueryParams.h" 
-#include "VigilTargetingFilterTask_LOS.generated.h"
+#include "VigilFilter_LOS.generated.h"
 
 /**
  * Used to filter targets by line of sight
  */
-UCLASS(Blueprintable, DisplayName="Vigil Targeting Filter Task (LOS)")
-class VIGIL_API UVigilTargetingFilterTask_LOS : public UTargetingFilterTask_BasicFilterTemplate
+UCLASS(Blueprintable, DisplayName="Vigil Filter (LOS)")
+class VIGIL_API UVigilFilter_LOS : public UTargetingFilterTask_BasicFilterTemplate
 {
 	GENERATED_BODY()
 
@@ -76,7 +76,7 @@ protected:
 	float TraceRadius = 0.f;
 	
 public:
-	UVigilTargetingFilterTask_LOS(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UVigilFilter_LOS(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	virtual bool ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle, const FTargetingDefaultResultData& TargetData) const override;
 

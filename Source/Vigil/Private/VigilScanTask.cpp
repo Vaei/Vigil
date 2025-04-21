@@ -101,9 +101,14 @@ void UVigilScanTask::RequestVigil()
 			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve player controller from owner player state"), *GetRoleString());
 			PlayerController = PlayerState->GetPlayerController();
 		}
+		else if (const APlayerController* PC = Cast<APlayerController>(WeakOwner.Get()))
+		{
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Owner is a player controller"), *GetRoleString());
+			PlayerController = PC;
+		}
 		else
 		{
-			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Could not retrieve player controller because owner is not a pawn or player state"), *GetRoleString());
+			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Could not retrieve player controller because owner is not a pawn or player state or player controller"), *GetRoleString());
 		}
 		
 		// If the player controller is not valid, wait for a bit and try again

@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Jared Taylor
 
 
-#include "Targeting/VigilTargetingSortTask.h"
-
-#include "Targeting/VigilTargetingStatics.h"
+#include "Sorting/VigilSortBase.h"
 #include "TargetingSystem/TargetingSubsystem.h"
-
 
 #if UE_ENABLE_DEBUG_DRAWING
 #if WITH_EDITORONLY_DATA
@@ -15,7 +12,8 @@
 
 #include "Kismet/KismetMathLibrary.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingSortTask)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilSortBase)
+
 
 namespace VigilSortTaskConstants
 {
@@ -23,90 +21,14 @@ namespace VigilSortTaskConstants
 	const FString PostSortPrefix = TEXT("PostSort");
 }
 
-UVigilTargetingSortTask::UVigilTargetingSortTask(const FObjectInitializer& ObjectInitializer)
+UVigilSortBase::UVigilSortBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	ScoreMethod = EVigilScoreMethod::Angle;
 	bAscending = true;
 	bStableSort = false;
 }
 
-float UVigilTargetingSortTask::GetAngleScore(const FTargetingDefaultResultData& TargetData,
-	const FVector& SourceLocation, const FVector& TargetLocation, const FVector& SourceDirection)
-{
-	// We want to score this based on how far our target angle is from the source
-	const float MaxAngle = TargetData.HitResult.Time;
-	const FVector Direction = (TargetLocation - SourceLocation).GetSafeNormal();
-	const float AngleDot = SourceDirection | Direction;
-	const float AngleDiff = FMath::RadiansToDegrees(FMath::Acos(AngleDot));
-	const float Score = FMath::Clamp(AngleDiff / MaxAngle, 0.f, 1.f);
-	return Score;
-}
-
-float UVigilTargetingSortTask::GetDistanceScore(const FTargetingDefaultResultData& TargetData, const FVector& SourceLocation, const FVector& TargetLocation)
-{
-	// We want to score this based on how far our target is from the source
-	const float MaxDistance = TargetData.HitResult.PenetrationDepth;
-	const float Distance = FVector::Distance(SourceLocation, TargetLocation);
-	const float Score = FMath::Clamp(Distance / MaxDistance, 0.f, 1.f);
-	return Score;
-}
-
-float UVigilTargetingSortTask::GetScoreForTarget(const FTargetingRequestHandle& TargetingHandle,
-	const FTargetingDefaultResultData& TargetData) const
-{
-	float Score = 0.f;
-	float NotUsed = 0.f;
-
-	EVigilScoreMethod Method = ScoreMethod;
-	if (ScoreMethod == EVigilScoreMethod::WeightedAngleDistance)
-	{
-		// Skip if the value makes no sense
-		if (FMath::IsNearlyEqual(AngleWeight, 1.f))
-		{
-			Method = EVigilScoreMethod::Angle;
-		}
-		else if (FMath::IsNearlyEqual(AngleWeight, 0.f))
-		{
-			Method = EVigilScoreMethod::Distance;
-		}
-		else if (FMath::IsNearlyEqual(AngleWeight, 0.5f))
-		{
-			Method = EVigilScoreMethod::AverageAngleDistance;
-		}
-	}
-
-	switch (Method)
-	{
-	case EVigilScoreMethod::Angle:
-		UVigilTargetingStatics::GetAngleToVigilTarget(TargetData.HitResult, Score, NotUsed);
-		break;
-	case EVigilScoreMethod::Distance:
-		UVigilTargetingStatics::GetDistanceToVigilTarget(TargetData.HitResult, Score, NotUsed);
-		break;
-	case EVigilScoreMethod::AverageAngleDistance:
-		{
-			float DistanceScore = 0.f;
-			UVigilTargetingStatics::GetDistanceToVigilTarget(TargetData.HitResult, DistanceScore, NotUsed);
-			UVigilTargetingStatics::GetAngleToVigilTarget(TargetData.HitResult, Score, NotUsed);
-			Score = 0.5f * (Score + DistanceScore);
-		}
-		break;
-	case EVigilScoreMethod::WeightedAngleDistance:
-		{
-			float DistanceScore = 0.f;
-			UVigilTargetingStatics::GetDistanceToVigilTarget(TargetData.HitResult, DistanceScore, NotUsed);
-			UVigilTargetingStatics::GetAngleToVigilTarget(TargetData.HitResult, Score, NotUsed);
-			Score *= AngleWeight;
-			DistanceScore *= (1.f - AngleWeight);
-			Score += DistanceScore;
-		}
-	}
-	
-	return Score;
-}
-
-void UVigilTargetingSortTask::Execute(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilSortBase::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
 	Super::Execute(TargetingHandle);
 
@@ -177,7 +99,7 @@ void UVigilTargetingSortTask::Execute(const FTargetingRequestHandle& TargetingHa
 
 #if UE_ENABLE_DEBUG_DRAWING
 
-void UVigilTargetingSortTask::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info, const FTargetingRequestHandle& TargetingHandle, float XOffset, float YOffset, int32 MinTextRowsToAdvance) const
+void UVigilSortBase::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info, const FTargetingRequestHandle& TargetingHandle, float XOffset, float YOffset, int32 MinTextRowsToAdvance) const
 {
 #if WITH_EDITORONLY_DATA
 	if (TargetingSubsystem && UTargetingSubsystem::IsTargetingDebugEnabled())
@@ -202,7 +124,7 @@ void UVigilTargetingSortTask::DrawDebug(UTargetingSubsystem* TargetingSubsystem,
 #endif // WITH_EDITORONLY_DATA
 }
 
-void UVigilTargetingSortTask::BuildPreSortDebugString(const FTargetingRequestHandle& TargetingHandle, const TArray<FTargetingDefaultResultData>& TargetResults) const
+void UVigilSortBase::BuildPreSortDebugString(const FTargetingRequestHandle& TargetingHandle, const TArray<FTargetingDefaultResultData>& TargetResults) const
 {
 #if WITH_EDITORONLY_DATA
 	if (UTargetingSubsystem::IsTargetingDebugEnabled())
@@ -228,7 +150,7 @@ void UVigilTargetingSortTask::BuildPreSortDebugString(const FTargetingRequestHan
 #endif // WITH_EDITORONLY_DATA
 }
 
-void UVigilTargetingSortTask::BuildPostSortDebugString(const FTargetingRequestHandle& TargetingHandle, const TArray<FTargetingDefaultResultData>& TargetResults) const
+void UVigilSortBase::BuildPostSortDebugString(const FTargetingRequestHandle& TargetingHandle, const TArray<FTargetingDefaultResultData>& TargetResults) const
 {
 #if WITH_EDITORONLY_DATA
 	if (UTargetingSubsystem::IsTargetingDebugEnabled())
@@ -254,7 +176,7 @@ void UVigilTargetingSortTask::BuildPostSortDebugString(const FTargetingRequestHa
 #endif // WITH_EDITORONLY_DATA
 }
 
-void UVigilTargetingSortTask::ResetSortDebugStrings(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilSortBase::ResetSortDebugStrings(const FTargetingRequestHandle& TargetingHandle) const
 {
 #if WITH_EDITORONLY_DATA
 	FTargetingDebugData& DebugData = FTargetingDebugData::FindOrAdd(TargetingHandle);

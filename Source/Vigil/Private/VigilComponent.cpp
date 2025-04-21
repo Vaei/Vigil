@@ -139,7 +139,7 @@ void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag, bool b
 		return;
 	}
 
-	if (UTargetingSubsystem* Targeting = GetWorld()->GetGameInstance()->GetSubsystem<UTargetingSubsystem>())
+	if (UTargetingSubsystem* TargetSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTargetingSubsystem>())
 	{
 		// Oddly, there is no 'end all requests' option, and the handles are not accessible, so we track the handles ourselves
 		TArray<FGameplayTag> RemovedRequests;
@@ -149,7 +149,7 @@ void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag, bool b
 			if (!PresetTag.IsValid() || Request.Key == PresetTag)
 			{
 				RemovedRequests.Add(Request.Key);
-				Targeting->RemoveAsyncTargetingRequestWithHandle(Request.Value);
+				TargetSubsystem->RemoveAsyncTargetingRequestWithHandle(Request.Value);
 			}
 		}
 

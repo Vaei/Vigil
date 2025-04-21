@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Jared Taylor
 
 
-#include "Targeting/VigilTargetingSelectionTask.h"
+#include "Targeting/VigilTargetSelection.h"
 
 #include "VigilStatics.h"
 #include "Targeting/VigilTargetingStatics.h"
@@ -17,9 +17,10 @@
 #endif
 #endif
 
-DEFINE_LOG_CATEGORY_STATIC(LogVigilTargetingSystem, Log, All);
+DEFINE_LOG_CATEGORY_STATIC(LogVigilTargeting, Log, All);
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingSelectionTask)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetSelection)
+
 
 namespace FVigilCVars
 {
@@ -34,7 +35,7 @@ namespace FVigilCVars
 #endif
 }
 
-UVigilTargetingSelectionTask::UVigilTargetingSelectionTask(const FObjectInitializer& ObjectInitializer)
+UVigilTargetSelection::UVigilTargetSelection(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CollisionChannel = ECC_Visibility;
@@ -53,32 +54,32 @@ UVigilTargetingSelectionTask::UVigilTargetingSelectionTask(const FObjectInitiali
 	ConeAngleHeight = 35.f;
 }
 
-FVector UVigilTargetingSelectionTask::GetSourceLocation_Implementation(
+FVector UVigilTargetSelection::GetSourceLocation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceLocation(TargetingHandle, LocationSource);
 }
 
-FVector UVigilTargetingSelectionTask::GetSourceOffset_Implementation(
+FVector UVigilTargetSelection::GetSourceOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceOffset(TargetingHandle, LocationSource, DefaultSourceLocationOffset,
 		bUseRelativeLocationOffset);
 }
 
-FQuat UVigilTargetingSelectionTask::GetSourceRotation_Implementation(
+FQuat UVigilTargetSelection::GetSourceRotation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSource);
 }
 
-FQuat UVigilTargetingSelectionTask::GetSourceRotationOffset_Implementation(
+FQuat UVigilTargetSelection::GetSourceRotationOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return DefaultSourceRotationOffset.Quaternion();
 }
 
-void UVigilTargetingSelectionTask::Execute(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetSelection::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
 	Super::Execute(TargetingHandle);
 	
@@ -96,7 +97,7 @@ void UVigilTargetingSelectionTask::Execute(const FTargetingRequestHandle& Target
 	}
 }
 
-void UVigilTargetingSelectionTask::ExecuteImmediateTrace(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetSelection::ExecuteImmediateTrace(const FTargetingRequestHandle& TargetingHandle) const
 {
 #if UE_ENABLE_DEBUG_DRAWING
 	ResetDebugString(TargetingHandle);
@@ -113,19 +114,19 @@ void UVigilTargetingSelectionTask::ExecuteImmediateTrace(const FTargetingRequest
 		{
 			if (const UPrimitiveComponent* CollisionComponent = GetCollisionComponent(TargetingHandle))
 			{
-				FComponentQueryParams ComponentQueryParams(SCENE_QUERY_STAT(UVigilTargetingSelectionTask_AOE_Component));
+				FComponentQueryParams ComponentQueryParams(SCENE_QUERY_STAT(UVigilTargetSelection_AOE_Component));
 				InitCollisionParams(TargetingHandle, ComponentQueryParams);
 				World->ComponentOverlapMulti(OverlapResults, CollisionComponent, CollisionComponent->GetComponentLocation(), CollisionComponent->GetComponentRotation(), ComponentQueryParams);
 			}
 			else
 			{
-				UE_LOG(LogVigilTargetingSystem, Warning, TEXT("UVigilTargetingSelectionTask_AOE::Execute - Failed to find a collision component w/ tag [%s] for a SourceComponent ShapeType."), *ComponentTag.ToString());
+				UE_LOG(LogVigilTargeting, Warning, TEXT("UVigilTargetSelection_AOE::Execute - Failed to find a collision component w/ tag [%s] for a SourceComponent ShapeType."), *ComponentTag.ToString());
 			}
 		}
 		else
 		{
 			const FCollisionShape CollisionShape = GetCollisionShape();
-			FCollisionQueryParams OverlapParams(TEXT("UVigilTargetingSelectionTask_AOE"), SCENE_QUERY_STAT_ONLY(UVigilTargetingSelectionTask_AOE), false);
+			FCollisionQueryParams OverlapParams(TEXT("UVigilTargetSelection_AOE"), SCENE_QUERY_STAT_ONLY(UVigilTargetSelection_AOE), false);
 			InitCollisionParams(TargetingHandle, OverlapParams);
 
 			if (CollisionObjectTypes.Num() > 0)
@@ -147,34 +148,41 @@ void UVigilTargetingSelectionTask::ExecuteImmediateTrace(const FTargetingRequest
 			{
 				World->OverlapMultiByChannel(OverlapResults, SourceLocation, SourceRotation, CollisionChannel, CollisionShape, OverlapParams);
 			}
-
-#if UE_ENABLE_DEBUG_DRAWING
-			if (FVigilCVars::bVigilSelectionDebug)
-			{
-				DebugDrawBoundingVolume(TargetingHandle, FColor::Red);
-			}
-#endif
 		}
 
-		ProcessOverlapResults(TargetingHandle, OverlapResults);
+		const int32 NumValidResults = ProcessOverlapResults(TargetingHandle, OverlapResults);
+		
+#if UE_ENABLE_DEBUG_DRAWING
+		if (FVigilCVars::bVigilSelectionDebug)
+		{
+			const FColor& DebugColor = NumValidResults > 0 ? FColor::Red : FColor::Green;
+			const FColor& DebugColorAlt = OverlapResults.Num() > 0 ? FColor::Red : FColor::Green;
+			DebugDrawBoundingVolume(TargetingHandle, DebugColor, DebugColorAlt);
+		}
+#endif
 	}
 
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Completed);
 }
 
-void UVigilTargetingSelectionTask::ExecuteAsyncTrace(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetSelection::ExecuteAsyncTrace(const FTargetingRequestHandle& TargetingHandle) const
 {
 	UWorld* World = GetSourceContextWorld(TargetingHandle);
 	if (World && TargetingHandle.IsValid())
 	{
-		const FVector SourceLocation = GetSourceLocation(TargetingHandle) + GetSourceOffset(TargetingHandle);
+		FVector SourceLocation = GetSourceLocation(TargetingHandle) + GetSourceOffset(TargetingHandle);
 		const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
 
+		if (ShapeType == EVigilTargetingShape::Cone)
+		{
+			SourceLocation += SourceRotation.Vector() * ConeLength.GetValue() * 0.5f;
+		}
+
 		const FCollisionShape CollisionShape = GetCollisionShape();
-		FCollisionQueryParams OverlapParams(TEXT("UVigilTargetingSelectionTask_AOE"), SCENE_QUERY_STAT_ONLY(UVigilTargetingSelectionTask_AOE_Shape), false);
+		FCollisionQueryParams OverlapParams(TEXT("UVigilTargetSelection_AOE"), SCENE_QUERY_STAT_ONLY(UVigilTargetSelection_AOE_Shape), false);
 		InitCollisionParams(TargetingHandle, OverlapParams);
 
-		const FOverlapDelegate Delegate = FOverlapDelegate::CreateUObject(this, &UVigilTargetingSelectionTask::HandleAsyncOverlapComplete, TargetingHandle);
+		const FOverlapDelegate Delegate = FOverlapDelegate::CreateUObject(this, &UVigilTargetSelection::HandleAsyncOverlapComplete, TargetingHandle);
 		if (CollisionObjectTypes.Num() > 0)
 		{
 			FCollisionObjectQueryParams ObjectParams;
@@ -201,31 +209,35 @@ void UVigilTargetingSelectionTask::ExecuteAsyncTrace(const FTargetingRequestHand
 	}
 }
 
-void UVigilTargetingSelectionTask::HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle,
+void UVigilTargetSelection::HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle,
 	FOverlapDatum& InOverlapDatum, FTargetingRequestHandle TargetingHandle) const
 {
 	if (TargetingHandle.IsValid())
 	{
 #if UE_ENABLE_DEBUG_DRAWING
 		ResetDebugString(TargetingHandle);
-
-		if (FVigilCVars::bVigilSelectionDebug)
-		{
-			const FColor& DebugColor = InOverlapDatum.OutOverlaps.Num() > 0 ? FColor::Red : FColor::Green;
-			DebugDrawBoundingVolume(TargetingHandle, DebugColor, &InOverlapDatum);
-		}
 #endif
 
-		ProcessOverlapResults(TargetingHandle, InOverlapDatum.OutOverlaps);
+		const int32 NumValidResults = ProcessOverlapResults(TargetingHandle, InOverlapDatum.OutOverlaps);
+		
+#if UE_ENABLE_DEBUG_DRAWING
+		if (FVigilCVars::bVigilSelectionDebug)
+		{
+			const FColor& DebugColor = NumValidResults > 0 ? FColor::Red : FColor::Green;
+			const FColor& DebugColorAlt = InOverlapDatum.OutOverlaps.Num() > 0 ? FColor::Red : FColor::Green;
+			DebugDrawBoundingVolume(TargetingHandle, DebugColor, DebugColorAlt, &InOverlapDatum);
+		}
+#endif
 	}
 
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Completed);
 }
 
-void UVigilTargetingSelectionTask::ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle,
+int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle,
 	const TArray<FOverlapResult>& Overlaps) const
 {
 	// process the overlaps
+	int32 NumValidResults = 0;
 	if (Overlaps.Num() > 0)
 	{
 		FTargetingDefaultResultsSet& TargetingResults = FTargetingDefaultResultsSet::FindOrAdd(TargetingHandle);
@@ -271,8 +283,8 @@ void UVigilTargetingSelectionTask::ProcessOverlapResults(const FTargetingRequest
 							TargetLocation = OverlapResult.GetComponent()->GetComponentLocation();
 						}
 
-						FCollisionQueryParams Params(TEXT("UVigilTargetingSelectionTask_AOE_ConeTargetMesh"),
-							SCENE_QUERY_STAT_ONLY(UVigilTargetingSelectionTask_AOE_ConeTargetMesh), true);
+						FCollisionQueryParams Params(TEXT("UVigilTargetSelection_AOE_ConeTargetMesh"),
+							SCENE_QUERY_STAT_ONLY(UVigilTargetSelection_AOE_ConeTargetMesh), true);
 						InitCollisionParams(TargetingHandle, Params);
 						Params.bTraceComplex = true;
 						
@@ -307,6 +319,8 @@ void UVigilTargetingSelectionTask::ProcessOverlapResults(const FTargetingRequest
 
 			if (bAddResult)
 			{
+				NumValidResults++;
+				
 				FTargetingDefaultResultData* ResultData = new(TargetingResults.TargetResults) FTargetingDefaultResultData();
 				ResultData->HitResult.HitObjectHandle = OverlapResult.OverlapObjectHandle;
 				ResultData->HitResult.Component = OverlapResult.GetComponent();
@@ -372,9 +386,11 @@ void UVigilTargetingSelectionTask::ProcessOverlapResults(const FTargetingRequest
 		BuildDebugString(TargetingHandle, TargetingResults.TargetResults);
 #endif
 	}
+
+	return NumValidResults;
 }
 
-FCollisionShape UVigilTargetingSelectionTask::GetCollisionShape() const
+FCollisionShape UVigilTargetSelection::GetCollisionShape() const
 {
 	switch (ShapeType)
 	{
@@ -388,7 +404,7 @@ FCollisionShape UVigilTargetingSelectionTask::GetCollisionShape() const
 	}
 }
 
-const UPrimitiveComponent* UVigilTargetingSelectionTask::GetCollisionComponent(
+const UPrimitiveComponent* UVigilTargetSelection::GetCollisionComponent(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
@@ -411,15 +427,15 @@ const UPrimitiveComponent* UVigilTargetingSelectionTask::GetCollisionComponent(
 	return nullptr;
 }
 
-void UVigilTargetingSelectionTask::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetSelection::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
 	FCollisionQueryParams& OutParams) const
 {
 	UVigilTargetingStatics::InitCollisionParams(TargetingHandle, OutParams, bIgnoreSourceActor,
 		bIgnoreInstigatorActor, bTraceComplex);
 }
 
-void UVigilTargetingSelectionTask::DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle,
-	const FColor& Color, const FOverlapDatum* OverlapDatum) const
+void UVigilTargetSelection::DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle,
+	const FColor& Color, const FColor& ColorAlt, const FOverlapDatum* OverlapDatum) const
 {
 #if UE_ENABLE_DEBUG_DRAWING
 	const UWorld* World = GetSourceContextWorld(TargetingHandle);
@@ -439,8 +455,10 @@ void UVigilTargetingSelectionTask::DebugDrawBoundingVolume(const FTargetingReque
 	switch (ShapeType)
 	{
 	case EVigilTargetingShape::Cone:
-		UVigilStatics::DrawVigilDebugCone(World, SourceLocation, SourceRotation.Rotator(), GetConeShape(),
+		UVigilStatics::DrawVigilDebugCone(World, SourceLocation - SourceRotation.Vector() * ConeLength.GetValue() * 0.5f, SourceRotation.Rotator(), GetConeShape(),
 			Color, 16, LifeTime, Thickness);
+		DrawDebugBox(World, SourceLocation, CollisionShape.GetExtent(), SourceRotation, ColorAlt, bPersistentLines,
+			LifeTime, DepthPriority, Thickness);
 		break;
 	case EVigilTargetingShape::Box:
 		DrawDebugBox(World, SourceLocation, CollisionShape.GetExtent(), SourceRotation,
@@ -468,7 +486,7 @@ void UVigilTargetingSelectionTask::DebugDrawBoundingVolume(const FTargetingReque
 }
 
 #if UE_ENABLE_DEBUG_DRAWING
-void UVigilTargetingSelectionTask::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info,
+void UVigilTargetSelection::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info,
 	const FTargetingRequestHandle& TargetingHandle, float XOffset, float YOffset, int32 MinTextRowsToAdvance) const
 {
 #if WITH_EDITORONLY_DATA
@@ -490,7 +508,7 @@ void UVigilTargetingSelectionTask::DrawDebug(UTargetingSubsystem* TargetingSubsy
 #endif
 }
 
-void UVigilTargetingSelectionTask::BuildDebugString(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetSelection::BuildDebugString(const FTargetingRequestHandle& TargetingHandle,
 	const TArray<FTargetingDefaultResultData>& TargetResults) const
 {
 #if WITH_EDITORONLY_DATA
@@ -517,7 +535,7 @@ void UVigilTargetingSelectionTask::BuildDebugString(const FTargetingRequestHandl
 #endif
 }
 
-void UVigilTargetingSelectionTask::ResetDebugString(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetSelection::ResetDebugString(const FTargetingRequestHandle& TargetingHandle) const
 {
 #if WITH_EDITORONLY_DATA
 	FTargetingDebugData& DebugData = FTargetingDebugData::FindOrAdd(TargetingHandle);

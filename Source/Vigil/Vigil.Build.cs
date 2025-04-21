@@ -25,6 +25,7 @@ public class Vigil : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
+				"UMG",
 			}
 			);
 	}
