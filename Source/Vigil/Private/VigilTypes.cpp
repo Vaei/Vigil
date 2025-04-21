@@ -35,7 +35,7 @@ bool FVigilConeShape::IsPointWithinCone(const FVector& Point, const FVector& Con
 	return AWidth <= AngleWidth * 0.5f && AHeight <= AngleHeight * 0.5f;
 }
 
-FCollisionShape FVigilConeShape::MakeConeBoxShape(float Length, float AngleWidth, float AngleHeight)
+FVector FVigilConeShape::GetConeBoxShapeHalfExtent() const
 {
 	// Convert to radians
 	const float HalfAngleWidth = FMath::DegreesToRadians(0.5f * AngleWidth);
@@ -47,14 +47,7 @@ FCollisionShape FVigilConeShape::MakeConeBoxShape(float Length, float AngleWidth
 
 	// Box aligned along X = cone direction
 	const FVector HalfExtent(0.5f * Length, RadiusX, RadiusY);
-
-	return FCollisionShape::MakeBox(HalfExtent);
-}
-
-FCollisionShape FVigilConeShape::MakeConeBoxShape(const FScalableFloat& Length, const FScalableFloat& AngleWidth,
-	const FScalableFloat& AngleHeight)
-{
-	return MakeConeBoxShape(Length.GetValue(), AngleWidth.GetValue(), AngleHeight.GetValue());
+	return HalfExtent;
 }
 
 FVigilConeShape FVigilConeShape::MakeConeFromScalableFloat(const FScalableFloat& Length,

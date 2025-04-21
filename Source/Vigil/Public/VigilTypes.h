@@ -59,18 +59,8 @@ struct VIGIL_API FVigilConeShape
 
 	bool IsPointWithinCone(const FVector& Point, const FVector& ConeOrigin, const FVector& ConeDirection) const;
 
-	FCollisionShape GetConeBoxShape() const
-	{
-		return MakeConeBoxShape(Length, AngleWidth, AngleHeight);
-	}
-	
-	FVector GetConeBoxShapeExtent() const
-	{
-		return GetConeBoxShape().GetExtent();
-	}
-	
-	static FCollisionShape MakeConeBoxShape(float Length, float AngleWidth, float AngleHeight);
-	static FCollisionShape MakeConeBoxShape(const FScalableFloat& Length, const FScalableFloat& AngleWidth, const FScalableFloat& AngleHeight);
+	FVector GetConeBoxShapeHalfExtent() const;
+
 	static FVigilConeShape MakeConeFromScalableFloat(const FScalableFloat& Length, const FScalableFloat& AngleWidth, const FScalableFloat& AngleHeight);
 };
 

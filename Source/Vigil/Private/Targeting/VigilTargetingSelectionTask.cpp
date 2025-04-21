@@ -378,7 +378,7 @@ FCollisionShape UVigilTargetingSelectionTask::GetCollisionShape() const
 {
 	switch (ShapeType)
 	{
-	case EVigilTargetingShape::Cone: return GetConeShape().GetConeBoxShape();
+	case EVigilTargetingShape::Cone: return FCollisionShape::MakeBox(GetConeShape().GetConeBoxShapeHalfExtent());
 	case EVigilTargetingShape::Box:	return FCollisionShape::MakeBox(HalfExtent);
 	case EVigilTargetingShape::Cylinder: return FCollisionShape::MakeBox(HalfExtent);
 	case EVigilTargetingShape::Sphere: return FCollisionShape::MakeSphere(Radius.GetValue());
