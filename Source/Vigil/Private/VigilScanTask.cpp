@@ -49,7 +49,7 @@ void UVigilScanTask::Activate()
 	RequestVigil();
 }
 
-void UVigilScanTask::WaitForVigil(float Delay)
+void UVigilScanTask::WaitForVigil(float Delay, const TOptional<FString>& Reason, const TOptional<FString>& VeryVerboseReason)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::WaitForVigil);
 	
@@ -59,41 +59,58 @@ void UVigilScanTask::WaitForVigil(float Delay)
 		return;
 	}
 
+	WaitReason = Reason;
+	VeryVerboseWaitReason = VeryVerboseReason;
+
 	GetWorld()->GetTimerManager().SetTimer(VigilWaitTimer, this, &UVigilScanTask::RequestVigil, Delay, false);
 }
 
 void UVigilScanTask::RequestVigil()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::RequestVigil);
+
+	// Print the last reason we waited, if set
+	if (WaitReason.IsSet())
+	{
+		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::WaitForVigil: LastWaitReason: %s [SYSTEM RESUME]"),
+			*GetRoleString(), *WaitReason.GetValue());
+		WaitReason.Reset();
+	}
+	if (VeryVerboseWaitReason.IsSet())
+	{
+		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::WaitForVigil: LastWaitReason: %s [SYSTEM RESUME]"),
+			*GetRoleString(), *VeryVerboseWaitReason.GetValue());
+		VeryVerboseWaitReason.Reset();
+	}
 	
 	// Cache the VigilComponent if required
 	if (!VC.IsValid())
 	{
-		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Caching VigilComponent"), *GetRoleString());
+		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Trying to cache VigilComponent..."), *GetRoleString());
 		
 		// Get the owning player controller
 		const TWeakObjectPtr<AActor>& WeakOwner = Ability->GetCurrentActorInfo()->OwnerActor;
 		const APlayerController* PlayerController = nullptr;
 		if (const APawn* Pawn = Cast<APawn>(WeakOwner.Get()))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Owner is a pawn"), *GetRoleString());
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve player controller from owner pawn"), *GetRoleString());
 			PlayerController = Pawn->GetController<APlayerController>();
 		}
 		else if (const APlayerState* PlayerState = Cast<APlayerState>(WeakOwner.Get()))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Owner is a player state"), *GetRoleString());
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve player controller from owner player state"), *GetRoleString());
 			PlayerController = PlayerState->GetPlayerController();
 		}
 		else
 		{
-			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Owner is not a pawn or player state"), *GetRoleString());
+			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Could not retrieve player controller because owner is not a pawn or player state"), *GetRoleString());
 		}
 		
 		// If the player controller is not valid, wait for a bit and try again
 		if (UNLIKELY(!PlayerController))
 		{
 			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid player controller. [SYSTEM WAIT]"), *GetRoleString());
-			WaitForVigil(0.5f);
+			WaitForVigil(0.5f, {"Invalid PlayerController"});
 			return;
 		}
 
@@ -114,6 +131,10 @@ void UVigilScanTask::RequestVigil()
 			
 			// Vigil will not run at all
 			return;
+		}
+		else
+		{
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Found and cached VigilComponent: %s"), *GetRoleString(), *VC->GetName());
 		}
 
 		// Bind to the pause delegate
@@ -156,7 +177,7 @@ void UVigilScanTask::RequestVigil()
 		{
 			const float TimeLeft = MaxRate - TimeSince;
 			UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::RequestVigil: TimeLeft: %.2f [SYSTEM WAIT]"), *GetRoleString(), TimeLeft);
-			WaitForVigil(TimeLeft);
+			WaitForVigil(TimeLeft, {}, {"Rate Throttling"});
 			return;
 		}
 	}
@@ -174,7 +195,7 @@ void UVigilScanTask::RequestVigil()
 	if (!TargetSubsystem)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid TargetingSubsystem. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {"Invalid TargetingSubsystem"});
 		return;
 	}
 
@@ -182,7 +203,7 @@ void UVigilScanTask::RequestVigil()
 	if (!TargetingSource)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid TargetingSource. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {"Invalid TargetingSource"});
 		return;
 	}
 	
@@ -209,7 +230,7 @@ void UVigilScanTask::RequestVigil()
 	if (TargetingPresets.Num() == 0)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: No targeting presets. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {}, {"No TargetingPresets"});
 		return;
 	}
 
@@ -242,8 +263,8 @@ void UVigilScanTask::RequestVigil()
 	if (!bAwaitingCallback)
 	{
 		// Failed to start any async targeting requests
-		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty!. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty! Bad setup!. [SYSTEM WAIT]"), *GetRoleString());
+		WaitForVigil(0.5f, {}, {"TargetingTaskSet(s) are empty! Bad setup!"});
 		return;
 	}
 
@@ -271,12 +292,12 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 
 	const FString RoleStr = Ability->GetCurrentActorInfo()->IsNetAuthority() ? TEXT("Auth") : TEXT("Client");
 	
-	UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: %s"), *GetRoleString(), *FocusTag.ToString());
+	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: %s"), *GetRoleString(), *FocusTag.ToString());
 
 	if (!VC.IsValid())
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid VigilComponent. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {"Invalid VigilComponent"});
 		return;
 	}
 	
@@ -285,7 +306,7 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid world or game instance. [SYSTEM WAIT]"), *GetRoleString());
 		VC->EndAllTargetingRequests();
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {}, {"Invalid world or game instance"});
 		return;
 	}
 
@@ -295,7 +316,7 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid TargetingSubsystem. [SYSTEM WAIT]"), *GetRoleString());
 		VC->EndAllTargetingRequests();
-		WaitForVigil(0.5f);
+		WaitForVigil(0.5f, {}, {"Invalid TargetingSubsystem"});
 		return;
 	}
 
@@ -317,13 +338,15 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 		VC->TargetingRequests.Remove(FocusTag);
 	}
 
-	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: FocusResults.Num(): %d"), *GetRoleString(), FocusResults.Num());
-
+	// Broadcast the results
 	if (FocusResults.Num() > 0 && VC->OnVigilTargetsReady.IsBound())
 	{
-		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Broadcasting results."), *GetRoleString());
-		// Broadcast the results
+		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: Broadcasting %d results."), *GetRoleString(), FocusResults.Num());
 		VC->OnVigilTargetsReady.Broadcast(VC.Get(), FocusTag, FocusResults);
+	}
+	else
+	{
+		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: No results to broadcast."), *GetRoleString());
 	}
 
 	// Don't request next vigil if requests are still pending -- otherwise we will re-enter RequestVigil multiple times

@@ -26,6 +26,9 @@ public:
 protected:
 	UPROPERTY()
 	TWeakObjectPtr<UVigilComponent> VC;
+
+	TOptional<FString> WaitReason;
+	TOptional<FString> VeryVerboseWaitReason;
 	
 public:
 	/**
@@ -37,7 +40,7 @@ public:
 
 	virtual void Activate() override;
 
-	void WaitForVigil(float Delay);
+	void WaitForVigil(float Delay, const TOptional<FString>& Reason = {}, const TOptional<FString>& VeryVerboseReason = {});
 	void RequestVigil();
 	void OnVigilComplete(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag);
 
