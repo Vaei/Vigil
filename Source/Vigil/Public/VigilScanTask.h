@@ -61,4 +61,7 @@ protected:
 	/** Tracked to prevent premature GC and allow ending during OnDestroy */
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UVigilNetSyncTask>> SyncTasks;
+
+	ENetMode GetOwnerNetMode() const;
+	FString GetRoleString() const;
 };
