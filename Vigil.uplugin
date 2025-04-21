@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0.0",
 	"FriendlyName": "Vigil",
-	"Description": "Gameplay Focusing System",
+	"Description": "Gameplay Focusing System, robust data-driven focus targeting, with optional net prediction",
 	"Category": "Gameplay",
 	"CreatedBy": "Jared Taylor (Vaei)",
 	"CreatedByURL": "https://vaei.github.io/",
