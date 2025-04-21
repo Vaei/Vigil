@@ -50,3 +50,10 @@ Hit result contains:
 	tracestart
 	item
 	distance
+	normal -- source rotation, i.e. direction we are looking in for score comparison
+	time -- the greatest possible angle difference, helpful for normalizing the angle to target for scoring (source component just gets sphere radius, not useful)  UVigilTargetingStatics::GetAngleToVigilTarget
+	penetrationdepth - the greatest possible distance, as above  UVigilTargetingStatics::GetDistanceToVigilTarget
+
+don't expect normalized distance to be useful on it's own, it is normalizing between some extreme approximations, do some remapping/clamping to get something you can work with for your use-case
+
+first result always the primary focus, due to sorting

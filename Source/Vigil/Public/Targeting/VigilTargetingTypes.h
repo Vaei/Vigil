@@ -7,7 +7,7 @@
 
 
 UENUM(BlueprintType)
-enum class EVigilTargetingShape_AOE : uint8
+enum class EVigilTargetingShape : uint8
 {
 	Cone,
 	Box,
@@ -18,7 +18,7 @@ enum class EVigilTargetingShape_AOE : uint8
 };
 
 UENUM(BlueprintType)
-enum class EVigilTargetLocationSource_AOE : uint8
+enum class EVigilTargetLocationSource : uint8
 {
 	Actor,
 	ViewLocation,
@@ -26,7 +26,7 @@ enum class EVigilTargetLocationSource_AOE : uint8
 };
 
 UENUM(BlueprintType)
-enum class EVigilTargetRotationSource_AOE : uint8
+enum class EVigilTargetRotationSource : uint8
 {
 	Actor,
 	ControlRotation,
@@ -34,7 +34,7 @@ enum class EVigilTargetRotationSource_AOE : uint8
 };
 
 UENUM(BlueprintType)
-enum class EVigilConeTargetLocationSource_AOE : uint8
+enum class EVigilConeTargetLocationSource : uint8
 {
 	Component				UMETA(ToolTip="Use the component location if the component exists, otherwise actor location"),
 	Actor					UMETA(ToolTip="Use the actor location"),
@@ -46,4 +46,13 @@ enum class EVigilTargetLocationSource_LOS : uint8
 {
 	BoundsOrigin			UMETA(ToolTip="Use the origin of the actor's bounds"),
 	Actor					UMETA(ToolTip="Use the actor location"),
+};
+
+UENUM(BlueprintType)
+enum class EVigilScoreMethod : uint8
+{
+	Angle					UMETA(ToolTip="Angle difference from the source"),
+	Distance				UMETA(ToolTip="Distance difference from the source"),
+	AverageAngleDistance	UMETA(ToolTip="Average of angle and distance"),
+	WeightedAngleDistance	UMETA(ToolTip="Weighted average of angle and distance"),
 };

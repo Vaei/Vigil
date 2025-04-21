@@ -25,7 +25,7 @@ UVigilTargetingFilterTask_LOS::UVigilTargetingFilterTask_LOS(const FObjectInitia
 	: Super(ObjectInitializer)
 {
 	CollisionChannel = ECC_Visibility;
-	LocationSource = EVigilTargetLocationSource_AOE::ViewLocation;
+	LocationSource = EVigilTargetLocationSource::ViewLocation;
 	TargetLocationSource = EVigilTargetLocationSource_LOS::BoundsOrigin;
 
 	bIgnoreSourceActor = true;

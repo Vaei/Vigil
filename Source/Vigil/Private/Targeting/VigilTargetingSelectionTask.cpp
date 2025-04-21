@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Jared Taylor. All Rights Reserved
 
 
-#include "Targeting/VigilTargetingSelectionTask_AOE.h"
+#include "Targeting/VigilTargetingSelectionTask.h"
 
 #include "VigilStatics.h"
 #include "TargetingSystem/TargetingSubsystem.h"
@@ -9,12 +9,14 @@
 #include "Targeting/VigilTargetingStatics.h"
 
 #if UE_ENABLE_DEBUG_DRAWING
+#if WITH_EDITORONLY_DATA
 #include "Engine/Canvas.h"
+#endif
 #endif
 
 DEFINE_LOG_CATEGORY_STATIC(LogVigilTargetingSystem, Log, All);
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingSelectionTask_AOE)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingSelectionTask)
 
 namespace FVigilCVars
 {
@@ -29,7 +31,7 @@ namespace FVigilCVars
 #endif
 }
 
-UVigilTargetingSelectionTask_AOE::UVigilTargetingSelectionTask_AOE(const FObjectInitializer& ObjectInitializer)
+UVigilTargetingSelectionTask::UVigilTargetingSelectionTask(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CollisionChannel = ECC_Visibility;
@@ -39,41 +41,41 @@ UVigilTargetingSelectionTask_AOE::UVigilTargetingSelectionTask_AOE(const FObject
 	bIgnoreInstigatorActor = false;
 	bTraceComplex = false;
 
-	LocationSource = EVigilTargetLocationSource_AOE::Camera;
-	RotationSource = EVigilTargetRotationSource_AOE::ViewRotation;
-	ConeTargetSource = EVigilConeTargetLocationSource_AOE::Component;
+	LocationSource = EVigilTargetLocationSource::Camera;
+	RotationSource = EVigilTargetRotationSource::ViewRotation;
+	ConeTargetSource = EVigilConeTargetLocationSource::Component;
 
 	ConeLength = 1800.f;
 	ConeAngleWidth = 25.f;
 	ConeAngleHeight = 35.f;
 }
 
-FVector UVigilTargetingSelectionTask_AOE::GetSourceLocation_Implementation(
+FVector UVigilTargetingSelectionTask::GetSourceLocation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceLocation(TargetingHandle, LocationSource);
 }
 
-FVector UVigilTargetingSelectionTask_AOE::GetSourceOffset_Implementation(
+FVector UVigilTargetingSelectionTask::GetSourceOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceOffset(TargetingHandle, LocationSource, DefaultSourceLocationOffset,
 		bUseRelativeLocationOffset);
 }
 
-FQuat UVigilTargetingSelectionTask_AOE::GetSourceRotation_Implementation(
+FQuat UVigilTargetingSelectionTask::GetSourceRotation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSource);
 }
 
-FQuat UVigilTargetingSelectionTask_AOE::GetSourceRotationOffset_Implementation(
+FQuat UVigilTargetingSelectionTask::GetSourceRotationOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	return DefaultSourceRotationOffset.Quaternion();
 }
 
-void UVigilTargetingSelectionTask_AOE::Execute(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetingSelectionTask::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
 	Super::Execute(TargetingHandle);
 	
@@ -81,7 +83,7 @@ void UVigilTargetingSelectionTask_AOE::Execute(const FTargetingRequestHandle& Ta
 
 	// @note: There isn't Async Overlap support based on Primitive Component, so even if using async targeting, it will
 	// run this task in "immediate" mode.
-	if (IsAsyncTargetingRequest(TargetingHandle) && (ShapeType != EVigilTargetingShape_AOE::SourceComponent))
+	if (IsAsyncTargetingRequest(TargetingHandle) && (ShapeType != EVigilTargetingShape::SourceComponent))
 	{
 		ExecuteAsyncTrace(TargetingHandle);
 	}
@@ -91,7 +93,7 @@ void UVigilTargetingSelectionTask_AOE::Execute(const FTargetingRequestHandle& Ta
 	}
 }
 
-void UVigilTargetingSelectionTask_AOE::ExecuteImmediateTrace(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetingSelectionTask::ExecuteImmediateTrace(const FTargetingRequestHandle& TargetingHandle) const
 {
 #if UE_ENABLE_DEBUG_DRAWING
 	ResetDebugString(TargetingHandle);
@@ -104,7 +106,7 @@ void UVigilTargetingSelectionTask_AOE::ExecuteImmediateTrace(const FTargetingReq
 		const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
 
 		TArray<FOverlapResult> OverlapResults;
-		if (ShapeType == EVigilTargetingShape_AOE::SourceComponent)
+		if (ShapeType == EVigilTargetingShape::SourceComponent)
 		{
 			if (const UPrimitiveComponent* CollisionComponent = GetCollisionComponent(TargetingHandle))
 			{
@@ -157,7 +159,7 @@ void UVigilTargetingSelectionTask_AOE::ExecuteImmediateTrace(const FTargetingReq
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Completed);
 }
 
-void UVigilTargetingSelectionTask_AOE::ExecuteAsyncTrace(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetingSelectionTask::ExecuteAsyncTrace(const FTargetingRequestHandle& TargetingHandle) const
 {
 	UWorld* World = GetSourceContextWorld(TargetingHandle);
 	if (World && TargetingHandle.IsValid())
@@ -169,7 +171,7 @@ void UVigilTargetingSelectionTask_AOE::ExecuteAsyncTrace(const FTargetingRequest
 		FCollisionQueryParams OverlapParams(TEXT("UVigilTargetingSelectionTask_AOE"), SCENE_QUERY_STAT_ONLY(UVigilTargetingSelectionTask_AOE_Shape), false);
 		InitCollisionParams(TargetingHandle, OverlapParams);
 
-		const FOverlapDelegate Delegate = FOverlapDelegate::CreateUObject(this, &UVigilTargetingSelectionTask_AOE::HandleAsyncOverlapComplete, TargetingHandle);
+		const FOverlapDelegate Delegate = FOverlapDelegate::CreateUObject(this, &UVigilTargetingSelectionTask::HandleAsyncOverlapComplete, TargetingHandle);
 		if (CollisionObjectTypes.Num() > 0)
 		{
 			FCollisionObjectQueryParams ObjectParams;
@@ -196,7 +198,7 @@ void UVigilTargetingSelectionTask_AOE::ExecuteAsyncTrace(const FTargetingRequest
 	}
 }
 
-void UVigilTargetingSelectionTask_AOE::HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle,
+void UVigilTargetingSelectionTask::HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle,
 	FOverlapDatum& InOverlapDatum, FTargetingRequestHandle TargetingHandle) const
 {
 	if (TargetingHandle.IsValid())
@@ -217,7 +219,7 @@ void UVigilTargetingSelectionTask_AOE::HandleAsyncOverlapComplete(const FTraceHa
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Completed);
 }
 
-void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetingSelectionTask::ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle,
 	const TArray<FOverlapResult>& Overlaps) const
 {
 	// process the overlaps
@@ -225,6 +227,8 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 	{
 		FTargetingDefaultResultsSet& TargetingResults = FTargetingDefaultResultsSet::FindOrAdd(TargetingHandle);
 		const FVector SourceLocation = GetSourceLocation(TargetingHandle) + GetSourceOffset(TargetingHandle);
+		const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
+
 		for (const FOverlapResult& OverlapResult : Overlaps)
 		{
 			if (!OverlapResult.GetActor())
@@ -233,7 +237,7 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 			}
 
 			// cylinders use box overlaps, so a radius check is necessary to constrain it to the bounds of a cylinder
-			if (ShapeType == EVigilTargetingShape_AOE::Cylinder)
+			if (ShapeType == EVigilTargetingShape::Cylinder)
 			{
 				const float RadiusSquared = (HalfExtent.X * HalfExtent.X);
 				const float DistanceSquared = FVector::DistSquared2D(OverlapResult.GetActor()->GetActorLocation(), SourceLocation);
@@ -244,20 +248,20 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 			}
 
 			// cone use box overlaps, so a length and angle check is necessary to constrain it to the bounds of a cone
-			if (ShapeType == EVigilTargetingShape_AOE::Cone)
+			if (ShapeType == EVigilTargetingShape::Cone)
 			{
 				FVector TargetLocation = OverlapResult.GetActor()->GetActorLocation();
 				switch (ConeTargetSource)
 				{
-				case EVigilConeTargetLocationSource_AOE::Component:
+				case EVigilConeTargetLocationSource::Component:
 					if (OverlapResult.GetComponent())
 					{
 						TargetLocation = OverlapResult.GetComponent()->GetComponentLocation();
 					}
 					break;
-				case EVigilConeTargetLocationSource_AOE::Actor:
+				case EVigilConeTargetLocationSource::Actor:
 					break;
-				case EVigilConeTargetLocationSource_AOE::TraceMesh:
+				case EVigilConeTargetLocationSource::TraceMesh:
 					{
 						if (OverlapResult.GetComponent())
 						{
@@ -282,7 +286,6 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 					break;
 				}
 
-				const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
 				const FVector SourceDirection = SourceRotation.Vector();
 				if (!GetConeShape().IsPointWithinCone(TargetLocation, SourceLocation, SourceDirection))
 				{
@@ -310,6 +313,55 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 				ResultData->HitResult.TraceStart = SourceLocation;
 				ResultData->HitResult.Item = OverlapResult.ItemIndex;
 				ResultData->HitResult.Distance = FVector::Distance(OverlapResult.GetActor()->GetActorLocation(), SourceLocation);
+
+				// Store the normal based on where we are looking based on source rotation
+				ResultData->HitResult.Normal = SourceRotation.Vector();
+
+				// Store the trace radius into Time based on the shape type
+				switch (ShapeType)
+				{
+				case EVigilTargetingShape::Cone:
+					ResultData->HitResult.Time = FMath::Max(GetConeShape().AngleHeight, GetConeShape().AngleWidth);
+					break;
+				case EVigilTargetingShape::Box:
+				case EVigilTargetingShape::Cylinder:
+					ResultData->HitResult.Time = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
+					break;
+				case EVigilTargetingShape::Sphere:
+					ResultData->HitResult.Time = Radius.GetValue();
+					break;
+				case EVigilTargetingShape::Capsule:
+					ResultData->HitResult.Time = HalfHeight.GetValue();
+					break;
+				case EVigilTargetingShape::SourceComponent:
+					ResultData->HitResult.Time = Radius.GetValue();
+					break;
+				}
+
+				// The default extent is twice the size of a shape, so we need to divide it by 2
+				ResultData->HitResult.Time *= 0.5f;
+
+				// Store the max distance into PenetrationDepth based on the shape type
+				switch (ShapeType)
+				{
+				case EVigilTargetingShape::Cone:
+					ResultData->HitResult.PenetrationDepth = GetConeShape().Length;
+					break;
+				case EVigilTargetingShape::Box:
+				case EVigilTargetingShape::Cylinder:
+					ResultData->HitResult.PenetrationDepth = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
+					break;
+				case EVigilTargetingShape::Sphere:
+					ResultData->HitResult.PenetrationDepth = Radius.GetValue();
+					break;
+				case EVigilTargetingShape::Capsule:
+					ResultData->HitResult.PenetrationDepth = HalfHeight.GetValue();
+					break;
+				case EVigilTargetingShape::SourceComponent:
+					ResultData->HitResult.PenetrationDepth = Radius.GetValue();
+					break;
+				}
+				ResultData->HitResult.PenetrationDepth *= 0.5f;
 			}
 		}
 
@@ -319,21 +371,21 @@ void UVigilTargetingSelectionTask_AOE::ProcessOverlapResults(const FTargetingReq
 	}
 }
 
-FCollisionShape UVigilTargetingSelectionTask_AOE::GetCollisionShape() const
+FCollisionShape UVigilTargetingSelectionTask::GetCollisionShape() const
 {
 	switch (ShapeType)
 	{
-	case EVigilTargetingShape_AOE::Cone: return GetConeShape().GetConeBoxShape();
-	case EVigilTargetingShape_AOE::Box:	return FCollisionShape::MakeBox(HalfExtent);
-	case EVigilTargetingShape_AOE::Cylinder: return FCollisionShape::MakeBox(HalfExtent);
-	case EVigilTargetingShape_AOE::Sphere: return FCollisionShape::MakeSphere(Radius.GetValue());
-	case EVigilTargetingShape_AOE::Capsule:
+	case EVigilTargetingShape::Cone: return GetConeShape().GetConeBoxShape();
+	case EVigilTargetingShape::Box:	return FCollisionShape::MakeBox(HalfExtent);
+	case EVigilTargetingShape::Cylinder: return FCollisionShape::MakeBox(HalfExtent);
+	case EVigilTargetingShape::Sphere: return FCollisionShape::MakeSphere(Radius.GetValue());
+	case EVigilTargetingShape::Capsule:
 		return FCollisionShape::MakeCapsule(Radius.GetValue(), HalfHeight.GetValue());
 	default: return {};
 	}
 }
 
-const UPrimitiveComponent* UVigilTargetingSelectionTask_AOE::GetCollisionComponent(
+const UPrimitiveComponent* UVigilTargetingSelectionTask::GetCollisionComponent(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
@@ -356,14 +408,14 @@ const UPrimitiveComponent* UVigilTargetingSelectionTask_AOE::GetCollisionCompone
 	return nullptr;
 }
 
-void UVigilTargetingSelectionTask_AOE::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetingSelectionTask::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
 	FCollisionQueryParams& OutParams) const
 {
 	UVigilTargetingStatics::InitCollisionParams(TargetingHandle, OutParams, bIgnoreSourceActor,
 		bIgnoreInstigatorActor, bTraceComplex);
 }
 
-void UVigilTargetingSelectionTask_AOE::DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetingSelectionTask::DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle,
 	const FColor& Color, const FOverlapDatum* OverlapDatum) const
 {
 #if UE_ENABLE_DEBUG_DRAWING
@@ -379,37 +431,37 @@ void UVigilTargetingSelectionTask_AOE::DebugDrawBoundingVolume(const FTargetingR
 
 	switch (ShapeType)
 	{
-	case EVigilTargetingShape_AOE::Cone:
+	case EVigilTargetingShape::Cone:
 		UVigilStatics::DrawVigilDebugCone(World, SourceLocation, SourceRotation.Rotator(), GetConeShape(),
 			Color, 16, LifeTime, Thickness);
 		break;
-	case EVigilTargetingShape_AOE::Box:
+	case EVigilTargetingShape::Box:
 		DrawDebugBox(World, SourceLocation, CollisionShape.GetExtent(), SourceRotation,
 			Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 		break;
-	case EVigilTargetingShape_AOE::Sphere:
+	case EVigilTargetingShape::Sphere:
 		DrawDebugCapsule(World, SourceLocation, CollisionShape.GetSphereRadius(), CollisionShape.GetSphereRadius(), SourceRotation,
 			Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 		break;
-	case EVigilTargetingShape_AOE::Capsule:
+	case EVigilTargetingShape::Capsule:
 		DrawDebugCapsule(World, SourceLocation, CollisionShape.GetCapsuleHalfHeight(), CollisionShape.GetCapsuleRadius(), SourceRotation,
 			Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 		break;
-	case EVigilTargetingShape_AOE::Cylinder:
+	case EVigilTargetingShape::Cylinder:
 		{
 			const FVector RotatedExtent = SourceRotation * CollisionShape.GetExtent();
 			DrawDebugCylinder(World, SourceLocation - RotatedExtent, SourceLocation + RotatedExtent, CollisionShape.GetExtent().X, 32,
 				Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
 			break;
 		}
-	case EVigilTargetingShape_AOE::SourceComponent:
+	case EVigilTargetingShape::SourceComponent:
 		break;
 	}
 #endif
 }
 
 #if UE_ENABLE_DEBUG_DRAWING
-void UVigilTargetingSelectionTask_AOE::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info,
+void UVigilTargetingSelectionTask::DrawDebug(UTargetingSubsystem* TargetingSubsystem, FTargetingDebugInfo& Info,
 	const FTargetingRequestHandle& TargetingHandle, float XOffset, float YOffset, int32 MinTextRowsToAdvance) const
 {
 #if WITH_EDITORONLY_DATA
@@ -431,7 +483,7 @@ void UVigilTargetingSelectionTask_AOE::DrawDebug(UTargetingSubsystem* TargetingS
 #endif
 }
 
-void UVigilTargetingSelectionTask_AOE::BuildDebugString(const FTargetingRequestHandle& TargetingHandle,
+void UVigilTargetingSelectionTask::BuildDebugString(const FTargetingRequestHandle& TargetingHandle,
 	const TArray<FTargetingDefaultResultData>& TargetResults) const
 {
 #if WITH_EDITORONLY_DATA
@@ -458,7 +510,7 @@ void UVigilTargetingSelectionTask_AOE::BuildDebugString(const FTargetingRequestH
 #endif
 }
 
-void UVigilTargetingSelectionTask_AOE::ResetDebugString(const FTargetingRequestHandle& TargetingHandle) const
+void UVigilTargetingSelectionTask::ResetDebugString(const FTargetingRequestHandle& TargetingHandle) const
 {
 #if WITH_EDITORONLY_DATA
 	FTargetingDebugData& DebugData = FTargetingDebugData::FindOrAdd(TargetingHandle);

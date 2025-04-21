@@ -9,7 +9,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingStatics)
 
 FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle& TargetingHandle,
-	EVigilTargetLocationSource_AOE LocationSource)
+	EVigilTargetLocationSource LocationSource)
 {
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
@@ -17,15 +17,15 @@ FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle&
 		{
 			switch (LocationSource)
 			{
-			case EVigilTargetLocationSource_AOE::Actor: return SourceContext->SourceActor->GetActorLocation();
-			case EVigilTargetLocationSource_AOE::ViewLocation:
+			case EVigilTargetLocationSource::Actor: return SourceContext->SourceActor->GetActorLocation();
+			case EVigilTargetLocationSource::ViewLocation:
 				{
 					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
 					{
 						return Pawn->GetPawnViewLocation();
 					}
 				}
-			case EVigilTargetLocationSource_AOE::Camera:
+			case EVigilTargetLocationSource::Camera:
 				{
 					if (const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor->GetOwner()))
 					{
@@ -43,7 +43,7 @@ FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle&
 }
 
 FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& TargetingHandle,
-	EVigilTargetLocationSource_AOE LocationSource, FVector DefaultSourceLocationOffset, bool bUseRelativeLocationOffset)
+	EVigilTargetLocationSource LocationSource, FVector DefaultSourceLocationOffset, bool bUseRelativeLocationOffset)
 {
 	if (!bUseRelativeLocationOffset)
 	{
@@ -61,15 +61,15 @@ FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& T
 		{
 			switch (LocationSource)
 			{
-			case EVigilTargetLocationSource_AOE::Actor: return SourceContext->SourceActor->GetActorRotation().RotateVector(DefaultSourceLocationOffset);
-			case EVigilTargetLocationSource_AOE::ViewLocation:
+			case EVigilTargetLocationSource::Actor: return SourceContext->SourceActor->GetActorRotation().RotateVector(DefaultSourceLocationOffset);
+			case EVigilTargetLocationSource::ViewLocation:
 				{
 					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
 					{
 						return Pawn->GetViewRotation().RotateVector(DefaultSourceLocationOffset);
 					}
 				}
-			case EVigilTargetLocationSource_AOE::Camera:
+			case EVigilTargetLocationSource::Camera:
 				{
 					if (const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor->GetOwner()))
 					{
@@ -86,7 +86,7 @@ FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& T
 	return FVector::ZeroVector;
 }
 
-FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource_AOE RotationSource)
+FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource RotationSource)
 {
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
@@ -94,15 +94,15 @@ FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& T
 		{
 			switch (RotationSource)
 			{
-			case EVigilTargetRotationSource_AOE::Actor: return SourceContext->SourceActor->GetActorQuat();
-			case EVigilTargetRotationSource_AOE::ControlRotation:
+			case EVigilTargetRotationSource::Actor: return SourceContext->SourceActor->GetActorQuat();
+			case EVigilTargetRotationSource::ControlRotation:
 				{
 					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
 					{
 						return Pawn->GetControlRotation().Quaternion();
 					}
 				}
-			case EVigilTargetRotationSource_AOE::ViewRotation:
+			case EVigilTargetRotationSource::ViewRotation:
 				{
 					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
 					{
@@ -146,4 +146,37 @@ void UVigilTargetingStatics::InitCollisionParams(const FTargetingRequestHandle& 
 	
 	// static const auto CVarComplexTracingAOE = IConsoleManager::Get().FindConsoleVariable(TEXT("ts.AOE.EnableComplexTracingAOE"));
 	// const bool bComplexTracingAOE = CVarComplexTracingAOE ? CVarComplexTracingAOE->GetBool() : true;
+}
+
+float UVigilTargetingStatics::GetDistanceToVigilTarget(const FHitResult& HitResult, float& NormalizedDistance, float& MaxDistance)
+{
+	// This is the location we traced from to find a target
+	const FVector SourceLocation = HitResult.TraceStart;
+
+	// This is the location where we found the target
+	const FVector TargetLocation = HitResult.ImpactPoint;
+	
+	MaxDistance = HitResult.PenetrationDepth;
+	const float Distance = FVector::Distance(SourceLocation, TargetLocation);
+	NormalizedDistance = FMath::Clamp(Distance / MaxDistance, 0.f, 1.f);
+	return Distance;
+}
+
+float UVigilTargetingStatics::GetAngleToVigilTarget(const FHitResult& HitResult, float& NormalizedAngle, float& MaxAngle)
+{
+	// This is the location we traced from to find a target
+	const FVector SourceLocation = HitResult.TraceStart;
+
+	// This is the location where we found the target
+	const FVector TargetLocation = HitResult.ImpactPoint;
+	
+	// This is the direction we traced in to find a target
+	const FVector SourceDirection = HitResult.Normal;
+	
+	MaxAngle = HitResult.Time;
+	const FVector Direction = (TargetLocation - SourceLocation).GetSafeNormal();
+	const float AngleDot = SourceDirection | Direction;
+	const float AngleDiff = FMath::RadiansToDegrees(FMath::Acos(AngleDot));
+	NormalizedAngle = FMath::Clamp(AngleDiff / MaxAngle, 0.f, 1.f);
+	return AngleDiff;
 }
