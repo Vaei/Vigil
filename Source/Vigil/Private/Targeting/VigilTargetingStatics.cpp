@@ -5,6 +5,8 @@
 
 #include "Targeting/VigilTargetingTypes.h"
 #include "Types/TargetingSystemTypes.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingStatics)
 

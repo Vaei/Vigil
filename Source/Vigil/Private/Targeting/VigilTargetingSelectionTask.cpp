@@ -4,9 +4,12 @@
 #include "Targeting/VigilTargetingSelectionTask.h"
 
 #include "VigilStatics.h"
+#include "Targeting/VigilTargetingStatics.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Engine/OverlapResult.h"
-#include "Targeting/VigilTargetingStatics.h"
+#include "Engine/World.h"
+#include "Components/PrimitiveComponent.h"
+#include "System/VigilVersioning.h"
 
 #if UE_ENABLE_DEBUG_DRAWING
 #if WITH_EDITORONLY_DATA

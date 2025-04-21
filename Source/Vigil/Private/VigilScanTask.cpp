@@ -6,7 +6,17 @@
 #include "VigilComponent.h"
 #include "VigilNetSyncTask.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 #include "TargetingSystem/TargetingSubsystem.h"
+#include "Engine/Engine.h"
+#include "Engine/World.h"
+#include "Engine/GameInstance.h"
+#include "TimerManager.h"
+
+#if !UE_BUILD_SHIPPING
+#include "Logging/MessageLog.h"
+#endif
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilScanTask)
 

@@ -4,7 +4,10 @@
 #include "VigilComponent.h"
 
 #include "TargetingSystem/TargetingSubsystem.h"
-
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
+#include "Engine/World.h"
+#include "Engine/GameInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilComponent)
 

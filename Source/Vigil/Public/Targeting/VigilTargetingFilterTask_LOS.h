@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Tasks/TargetingFilterTask_BasicFilterTemplate.h"
 #include "Targeting/VigilTargetingTypes.h"
+#include "Engine/CollisionProfile.h"
+#include "CollisionQueryParams.h" 
 #include "VigilTargetingFilterTask_LOS.generated.h"
 
 /**

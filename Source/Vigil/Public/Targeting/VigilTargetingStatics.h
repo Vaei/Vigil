@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "VigilTargetingTypes.h"
-
+#include "Engine/EngineTypes.h"
+#include "CollisionQueryParams.h" 
 #include "VigilTargetingStatics.generated.h"
 
 struct FTargetingRequestHandle;

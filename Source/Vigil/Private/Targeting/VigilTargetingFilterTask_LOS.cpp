@@ -5,6 +5,11 @@
 
 #include "Targeting/VigilTargetingStatics.h"
 #include "TargetingSystem/TargetingSubsystem.h"
+#include "HAL/IConsoleManager.h"
+#include "GameFramework/Actor.h"
+#include "CollisionShape.h"
+#include "Engine/World.h"
+#include "System/VigilVersioning.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingFilterTask_LOS)
 

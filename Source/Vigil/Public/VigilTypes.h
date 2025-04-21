@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Engine/EngineTypes.h"
+#include "CollisionQueryParams.h" 
 #include "VigilTypes.generated.h"
 
 struct FScalableFloat;
