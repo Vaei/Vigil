@@ -6,6 +6,7 @@
 #include "VigilStatics.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Engine/OverlapResult.h"
+#include "Targeting/VigilTargetingStatics.h"
 
 #if UE_ENABLE_DEBUG_DRAWING
 #include "Engine/Canvas.h"
@@ -14,6 +15,19 @@
 DEFINE_LOG_CATEGORY_STATIC(LogVigilTargetingSystem, Log, All);
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingSelectionTask_AOE)
+
+namespace FVigilCVars
+{
+#if UE_ENABLE_DEBUG_DRAWING
+	static bool bVigilSelectionDebug = false;
+	FAutoConsoleVariableRef CVarVigilSelectionDebug(
+		TEXT("p.Vigil.Selection.Debug"),
+		bVigilSelectionDebug,
+		TEXT("Optionally draw debug for Vigil AOE Selection Task.\n")
+		TEXT("If true draw debug for Vigil AOE Selection Task"),
+		ECVF_Default);
+#endif
+}
 
 UVigilTargetingSelectionTask_AOE::UVigilTargetingSelectionTask_AOE(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -37,110 +51,20 @@ UVigilTargetingSelectionTask_AOE::UVigilTargetingSelectionTask_AOE(const FObject
 FVector UVigilTargetingSelectionTask_AOE::GetSourceLocation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
-	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
-	{
-		if (SourceContext->SourceActor)
-		{
-			switch (LocationSource)
-			{
-			case EVigilTargetLocationSource_AOE::Actor: return SourceContext->SourceActor->GetActorLocation();
-			case EVigilTargetLocationSource_AOE::ViewLocation:
-				{
-					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
-					{
-						return Pawn->GetPawnViewLocation();
-					}
-				}
-			case EVigilTargetLocationSource_AOE::Camera:
-				{
-					if (const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor->GetOwner()))
-					{
-						if (PC->PlayerCameraManager)
-						{
-							return PC->PlayerCameraManager->GetCameraLocation();
-						}
-					}
-				}
-				break;
-			}
-		}
-	}
-	return FVector::ZeroVector;
+	return UVigilTargetingStatics::GetSourceLocation(TargetingHandle, LocationSource);
 }
 
 FVector UVigilTargetingSelectionTask_AOE::GetSourceOffset_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
-	if (!bUseRelativeLocationOffset)
-	{
-		return DefaultSourceLocationOffset;
-	}
-
-	if (DefaultSourceLocationOffset.IsZero())
-	{
-		return FVector::ZeroVector;
-	}
-	
-	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
-	{
-		if (SourceContext->SourceActor)
-		{
-			switch (LocationSource)
-			{
-			case EVigilTargetLocationSource_AOE::Actor: return SourceContext->SourceActor->GetActorRotation().RotateVector(DefaultSourceLocationOffset);
-			case EVigilTargetLocationSource_AOE::ViewLocation:
-				{
-					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
-					{
-						return Pawn->GetViewRotation().RotateVector(DefaultSourceLocationOffset);
-					}
-				}
-			case EVigilTargetLocationSource_AOE::Camera:
-				{
-					if (const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor->GetOwner()))
-					{
-						if (PC->PlayerCameraManager)
-						{
-							return PC->PlayerCameraManager->GetCameraRotation().RotateVector(DefaultSourceLocationOffset);
-						}
-					}
-				}
-				break;
-			}
-		}
-	}
-	return FVector::ZeroVector;
+	return UVigilTargetingStatics::GetSourceOffset(TargetingHandle, LocationSource, DefaultSourceLocationOffset,
+		bUseRelativeLocationOffset);
 }
 
 FQuat UVigilTargetingSelectionTask_AOE::GetSourceRotation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
-	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
-	{
-		if (SourceContext->SourceActor)
-		{
-			switch (RotationSource)
-			{
-			case EVigilTargetRotationSource_AOE::Actor: return SourceContext->SourceActor->GetActorQuat();
-			case EVigilTargetRotationSource_AOE::ControlRotation:
-				{
-					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
-					{
-						return Pawn->GetControlRotation().Quaternion();
-					}
-				}
-			case EVigilTargetRotationSource_AOE::ViewRotation:
-				{
-					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
-					{
-						return Pawn->GetViewRotation().Quaternion();
-					}
-				}
-				break;
-			}
-		}
-	}
-	return FQuat::Identity;
+	return UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSource);
 }
 
 FQuat UVigilTargetingSelectionTask_AOE::GetSourceRotationOffset_Implementation(
@@ -220,7 +144,7 @@ void UVigilTargetingSelectionTask_AOE::ExecuteImmediateTrace(const FTargetingReq
 			}
 
 #if UE_ENABLE_DEBUG_DRAWING
-			if (UTargetingSubsystem::IsTargetingDebugEnabled())
+			if (FVigilCVars::bVigilSelectionDebug)
 			{
 				DebugDrawBoundingVolume(TargetingHandle, FColor::Red);
 			}
@@ -280,7 +204,7 @@ void UVigilTargetingSelectionTask_AOE::HandleAsyncOverlapComplete(const FTraceHa
 #if UE_ENABLE_DEBUG_DRAWING
 		ResetDebugString(TargetingHandle);
 
-		if (UTargetingSubsystem::IsTargetingDebugEnabled())
+		if (FVigilCVars::bVigilSelectionDebug)
 		{
 			const FColor& DebugColor = InOverlapDatum.OutOverlaps.Num() > 0 ? FColor::Red : FColor::Green;
 			DebugDrawBoundingVolume(TargetingHandle, DebugColor, &InOverlapDatum);
@@ -435,32 +359,8 @@ const UPrimitiveComponent* UVigilTargetingSelectionTask_AOE::GetCollisionCompone
 void UVigilTargetingSelectionTask_AOE::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
 	FCollisionQueryParams& OutParams) const
 {
-	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
-	{
-		if (bIgnoreSourceActor && SourceContext->SourceActor)
-		{
-			OutParams.AddIgnoredActor(SourceContext->SourceActor);
-		}
-
-		if (bIgnoreInstigatorActor && SourceContext->InstigatorActor)
-		{
-			OutParams.AddIgnoredActor(SourceContext->InstigatorActor);
-		}
-	}
-
-	// This isn't exported, we can't get to it...
-	
-	// // If we have a data store to override the collision query params from, add that to our collision params
-	// if (const FCollisionQueryTaskData* FoundOverride = UE::TargetingSystem::TTargetingDataStore<FCollisionQueryTaskData>::Find(TargetingHandle))
-	// {
-	// 	OutParams.AddIgnoredActors(FoundOverride->IgnoredActors);
-	// }
-
-	// Get the cvar for complex tracing
-	static const auto CVarComplexTracingAOE = IConsoleManager::Get().FindConsoleVariable(TEXT("ts.AOE.EnableComplexTracingAOE"));
-	const bool bComplexTracingAOE = CVarComplexTracingAOE ? CVarComplexTracingAOE->GetBool() : true;
-	
-	OutParams.bTraceComplex = bComplexTracingAOE && bTraceComplex;
+	UVigilTargetingStatics::InitCollisionParams(TargetingHandle, OutParams, bIgnoreSourceActor,
+		bIgnoreInstigatorActor, bTraceComplex);
 }
 
 void UVigilTargetingSelectionTask_AOE::DebugDrawBoundingVolume(const FTargetingRequestHandle& TargetingHandle,
@@ -513,7 +413,7 @@ void UVigilTargetingSelectionTask_AOE::DrawDebug(UTargetingSubsystem* TargetingS
 	const FTargetingRequestHandle& TargetingHandle, float XOffset, float YOffset, int32 MinTextRowsToAdvance) const
 {
 #if WITH_EDITORONLY_DATA
-	if (UTargetingSubsystem::IsTargetingDebugEnabled())
+	if (FVigilCVars::bVigilSelectionDebug)
 	{
 		FTargetingDebugData& DebugData = FTargetingDebugData::FindOrAdd(TargetingHandle);
 		const FString& ScratchPadString = DebugData.DebugScratchPadStrings.FindOrAdd(GetNameSafe(this));
@@ -535,7 +435,7 @@ void UVigilTargetingSelectionTask_AOE::BuildDebugString(const FTargetingRequestH
 	const TArray<FTargetingDefaultResultData>& TargetResults) const
 {
 #if WITH_EDITORONLY_DATA
-	if (UTargetingSubsystem::IsTargetingDebugEnabled())
+	if (FVigilCVars::bVigilSelectionDebug)
 	{
 		FTargetingDebugData& DebugData = FTargetingDebugData::FindOrAdd(TargetingHandle);
 		FString& ScratchPadString = DebugData.DebugScratchPadStrings.FindOrAdd(GetNameSafe(this));

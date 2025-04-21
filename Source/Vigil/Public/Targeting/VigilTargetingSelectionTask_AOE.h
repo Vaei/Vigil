@@ -4,49 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "VigilTypes.h"
+#include "Targeting/VigilTargetingTypes.h"
 #include "Tasks/TargetingSelectionTask_AOE.h"
 #include "VigilTargetingSelectionTask_AOE.generated.h"
-
-UENUM(BlueprintType)
-enum class EVigilTargetingShape_AOE : uint8
-{
-	Cone,
-	Box,
-	Cylinder,
-	Sphere,
-	Capsule,
-	SourceComponent,
-};
-
-UENUM(BlueprintType)
-enum class EVigilTargetLocationSource_AOE : uint8
-{
-	Actor,
-	ViewLocation,
-	Camera,
-};
-
-UENUM(BlueprintType)
-enum class EVigilTargetRotationSource_AOE : uint8
-{
-	Actor,
-	ControlRotation,
-	ViewRotation,
-};
-
-UENUM(BlueprintType)
-enum class EVigilConeTargetLocationSource_AOE : uint8
-{
-	Component				UMETA(ToolTip="Use the component location if the component exists, otherwise actor location"),
-	Actor					UMETA(ToolTip="Use the actor location"),
-	TraceMesh				UMETA(ToolTip="Complex line trace towards the component if it exists, otherwise the actor, and use the impact point - EXPENSIVE!"),
-};
 
 /**
  * Extend the shapes to include a cone
  * Adds location and rotation sources
  */
-UCLASS()
+UCLASS(Blueprintable)
 class VIGIL_API UVigilTargetingSelectionTask_AOE : public UTargetingTask
 {
 	GENERATED_BODY()
@@ -67,13 +33,16 @@ protected:
 	/** The collision channel to use for the cone target overlap check */
 	UPROPERTY(EditAnywhere, Category="Target AOE", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
 	TEnumAsByte<ECollisionChannel> ConeTargetCollisionChannel;
-	
+
+	/** Location to trace from */
 	UPROPERTY(EditAnywhere, Category="Target AOE")
 	EVigilTargetLocationSource_AOE LocationSource;
 
+	/** Rotation to trace from */
 	UPROPERTY(EditAnywhere, Category="Target AOE")
 	EVigilTargetRotationSource_AOE RotationSource;
 
+	/** What to check against for the cone's target */
 	UPROPERTY(EditAnywhere, Category="Target AOE", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
 	EVigilConeTargetLocationSource_AOE ConeTargetSource;
 	

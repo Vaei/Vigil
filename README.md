@@ -40,4 +40,13 @@ https://dev.epicgames.com/documentation/en-us/unreal-engine/gameplay-targeting-s
 
 Set collision channel to custom channel
 
-ts.debug.EnableTargetingDebugging
+ts.debug.EnableTargetingDebugging REPLACED WITH p.Vigil.Selection.Debug , p.Vigil.Filter.Debug , 
+
+Hit result contains:
+	actor via hitobjecthandle
+	component
+	impactpoint and location (identical)
+	bblockinghit (but no bstartpenetrating)
+	tracestart
+	item
+	distance
