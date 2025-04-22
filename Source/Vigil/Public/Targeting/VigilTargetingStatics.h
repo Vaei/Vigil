@@ -57,12 +57,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Get Angle to Vigil Target"))
 	static float GetAngleToVigilTarget(const FHitResult& HitResult, float& NormalizedAngle, float& MaxAngle);
 	
-	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Draw Debug Results", DevelopmentOnly))
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Draw Debug Results", Keywords="debug", DevelopmentOnly))
 	static void VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, float DrawDuration=0.05f, bool bLocatorAngle = true,
 		bool bLocatorDistance = false);
 
-	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Add Visual Logger Results", DevelopmentOnly))
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Add Visual Logger Results", Keywords="debug", DevelopmentOnly))
 	static void VigilAddVisualLoggerResults(APlayerController* PC, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, bool bLocatorAngle = true,
 		bool bLocatorDistance = false);
