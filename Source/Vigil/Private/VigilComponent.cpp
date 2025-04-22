@@ -119,6 +119,52 @@ void UVigilComponent::UpdateTargetingPresets()
 	}
 }
 
+FVigilFocusResult UVigilComponent::GetFocusResult(FGameplayTag FocusTag, bool& bValid) const
+{
+	if (const FVigilFocusResult* Result = CurrentFocusResults.Find(FocusTag))
+	{
+		bValid = Result->HitResult.GetActor() != nullptr;
+		return *Result;
+	}
+	bValid = false;
+	return {};
+}
+
+AActor* UVigilComponent::GetFocusActor(FGameplayTag FocusTag) const
+{
+	if (const FVigilFocusResult* Result = CurrentFocusResults.Find(FocusTag))
+	{
+		return Result->HitResult.GetActor();
+	}
+	return nullptr;
+}
+
+void UVigilComponent::VigilTargetsReady(const FGameplayTag& FocusTag, const TArray<FVigilFocusResult>& Results)
+{
+	// Update our current focus results
+	FVigilFocusResult& Focus = CurrentFocusResults.FindOrAdd(FocusTag);
+	AActor* LastFocusActor = Focus.HitResult.GetActor();
+	Focus = Results.IsValidIndex(0) ? Results[0] : FVigilFocusResult();
+
+	if (LastFocusActor != Focus.HitResult.GetActor())
+	{
+		// Notify if the focus actor changed
+		if (OnVigilFocusChanged.IsBound())
+		{
+			OnVigilFocusChanged.Broadcast(
+				this, FocusTag, Focus.HitResult.GetActor(), LastFocusActor, Focus);
+		}
+		K2_VigilFocusChanged(FocusTag, Focus.HitResult.GetActor(), LastFocusActor, Focus);
+	}
+
+	// Notify any listeners that the targets are ready
+	if (OnVigilTargetsReady.IsBound())
+	{
+		OnVigilTargetsReady.Broadcast(this, FocusTag, Results);
+	}
+	K2_VigilTargetsReady(FocusTag, Results);
+}
+
 void UVigilComponent::PauseVigil(bool bPaused, bool bEndTargetingRequestsOnPause)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::PauseVigil);

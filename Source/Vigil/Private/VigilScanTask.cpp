@@ -345,15 +345,8 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	}
 
 	// Broadcast the results
-	if (FocusResults.Num() > 0 && VC->OnVigilTargetsReady.IsBound())
-	{
-		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: Broadcasting %d results."), *GetRoleString(), FocusResults.Num());
-		VC->OnVigilTargetsReady.Broadcast(VC.Get(), FocusTag, FocusResults);
-	}
-	else
-	{
-		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: No results to broadcast."), *GetRoleString());
-	}
+	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: Broadcasting %d results."), *GetRoleString(), FocusResults.Num());
+	VC->VigilTargetsReady(FocusTag, FocusResults);
 
 	// Don't request next vigil if requests are still pending -- otherwise we will re-enter RequestVigil multiple times
 	if (VC->TargetingRequests.Num() == 0)

@@ -84,5 +84,11 @@ struct VIGIL_API FVigilFocusResult
 	
 	UPROPERTY(BlueprintReadOnly, Category=Vigil)
 	float Score;
+
+	bool HasValidData() const
+	{
+		return FocusTag != FGameplayTag::EmptyTag && HitResult.GetActor();
+	}
 };
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnVigilComplete, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, const TArray<FVigilFocusResult>&, Results);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnVigilTargetsReady, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, const TArray<FVigilFocusResult>&, Results);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FOnVigilFocusChanged, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, AActor*, Focus, AActor*, LastFocus, const FVigilFocusResult&, Result);

@@ -70,8 +70,12 @@ protected:
 public:
 	/** Delegate called when a targeting request is completed, populated with targeting results */
 	UPROPERTY(BlueprintAssignable, Category=Vigil)
-	FOnVigilComplete OnVigilTargetsReady;
+	FOnVigilTargetsReady OnVigilTargetsReady;
 
+	/** Delegate called when a focus target changes */
+	UPROPERTY(BlueprintAssignable, Category=Vigil)
+	FOnVigilFocusChanged OnVigilFocusChanged;
+	
 	/** VigilScanTask binds to this to pause itself when executed */
 	FOnPauseVigil OnPauseVigil;
 
@@ -88,6 +92,11 @@ public:
 	/** Callback for when RequestResyncVigil() completes */
 	UPROPERTY(BlueprintAssignable, Category=Vigil)
 	FOnVigilSyncCompleted OnVigilNetSyncCompleted;
+
+protected:
+	/** Last results of Vigil Focusing update, these are the current focus targets */
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Vigil)
+	TMap<FGameplayTag, FVigilFocusResult> CurrentFocusResults;
 	
 public:
 	UVigilComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
@@ -126,6 +135,26 @@ public:
 	 */
 	void UpdateTargetingPresets();
 
+	/** Get the current focus result for the given focus tag */
+	UFUNCTION(BlueprintCallable, Category=Vigil)
+	FVigilFocusResult GetFocusResult(FGameplayTag FocusTag, bool& bValid) const;
+
+	/** Get the current focus actor for the given focus tag */
+	UFUNCTION(BlueprintCallable, Category=Vigil)
+	AActor* GetFocusActor(FGameplayTag FocusTag) const;
+
+	/**
+	 * Notified by UVigilScanTask that our targets are ready
+	 * Cache the results and notify any listeners
+	 */
+	void VigilTargetsReady(const FGameplayTag& FocusTag, const TArray<FVigilFocusResult>& Results);
+
+	UFUNCTION(BlueprintImplementableEvent, Category=Vigil, meta=(DisplayName="On Vigil Targets Ready"))
+	void K2_VigilTargetsReady(const FGameplayTag& FocusTag, const TArray<FVigilFocusResult>& Results);
+
+	UFUNCTION(BlueprintImplementableEvent, Category=Vigil, meta=(DisplayName="On Vigil Focus Changed"))
+	void K2_VigilFocusChanged(const FGameplayTag& FocusTag, AActor* Focus, AActor* LastFocus, const FVigilFocusResult& Result);
+	
 	/** Pause or resume Vigil */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
 	void PauseVigil(bool bPaused, bool bEndTargetingRequestsOnPause = true);

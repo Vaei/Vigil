@@ -4,7 +4,7 @@
 #include "Sorting/VigilSort_Distance.h"
 
 #include "TargetingSystem/TargetingSubsystem.h"
-#include "Targeting/VigilTargetingStatics.h"
+#include "VigilStatics.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilSort_Distance)
 
@@ -13,6 +13,6 @@ float UVigilSort_Distance::GetScoreForTarget_Implementation(const FTargetingRequ
 	const FTargetingDefaultResultData& TargetData) const
 {
 	float Score, Max;
-	UVigilTargetingStatics::GetDistanceToVigilTarget(TargetData.HitResult, Score, Max);
+	UVigilStatics::GetDistanceToVigilTarget(TargetData.HitResult, Score, Max);
 	return Score;
 }
