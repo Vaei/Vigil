@@ -185,6 +185,7 @@ void UVigilScanTask::RequestVigil()
 			WaitForVigil(TimeLeft, {}, {"Rate Throttling"});
 			return;
 		}
+		VC->LastVigilScanTime = GetWorld()->GetTimeSeconds();
 	}
 
 	// Check if the world and game instance are valid
@@ -245,7 +246,7 @@ void UVigilScanTask::RequestVigil()
 		const FGameplayTag& Tag = Entry.Key;
 		const UTargetingPreset* Preset = Entry.Value;
 
-		if (Preset->GetTargetingTaskSet()->Tasks.IsEmpty())
+		if (!Preset || !Preset->GetTargetingTaskSet() || Preset->GetTargetingTaskSet()->Tasks.IsEmpty())
 		{
 			// If the only available presets only have empty tasks Vigil will never get a callback
 			continue;
@@ -268,7 +269,7 @@ void UVigilScanTask::RequestVigil()
 	if (!bAwaitingCallback)
 	{
 		// Failed to start any async targeting requests
-		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty! Bad setup!. [SYSTEM WAIT]"), *GetRoleString());
+		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty or no Preset assigned! Bad setup! [SYSTEM WAIT]"), *GetRoleString());
 		WaitForVigil(0.5f, {}, {"TargetingTaskSet(s) are empty! Bad setup!"});
 		return;
 	}
