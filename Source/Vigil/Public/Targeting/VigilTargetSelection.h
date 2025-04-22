@@ -31,7 +31,7 @@ protected:
 	TArray<TEnumAsByte<EObjectTypeQuery>> CollisionObjectTypes;
 
 	/** The collision channel to use for the cone target overlap check */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	TEnumAsByte<ECollisionChannel> ConeTargetCollisionChannel;
 
 	/** Location to trace from */
@@ -43,7 +43,7 @@ protected:
 	EVigilTargetRotationSource RotationSource;
 
 	/** What to check against for the cone's target */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	EVigilConeTargetLocationSource ConeTargetSource;
 	
 	/** The default source location offset used by GetSourceOffset */
@@ -77,13 +77,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape")
 	EVigilTargetingShape ShapeType = EVigilTargetingShape::Cone;
 
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	FScalableFloat ConeLength;
 
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	FScalableFloat ConeAngleWidth = 0.0f;
 
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Cone", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	FScalableFloat ConeAngleHeight;
 
 	FVigilConeShape GetConeShape() const
@@ -92,22 +92,22 @@ protected:
 	}
 
 	/** The half extent to use for box and cylinder */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Box||ShapeType==EVigilTargetingShape_AOE::Cylinder", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Box||ShapeType==EVigilTargetingShape::Cylinder", EditConditionHides))
 	FVector HalfExtent = FVector::ZeroVector;
 
 	/** The radius to use for sphere and capsule overlaps */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Sphere||ShapeType==EVigilTargetingShape_AOE::Capsule", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Sphere||ShapeType==EVigilTargetingShape::Capsule", EditConditionHides))
 	FScalableFloat Radius = 0.0f;
 
 	/** The half height to use for capsule overlap checks */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::Capsule", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Capsule", EditConditionHides))
 	FScalableFloat HalfHeight = 0.0f;
 
 	/**
 	 * The component tag to use if a custom component is desired as the overlap shape.
 	 * Use to look up the component on the source actor
 	 */
-	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape_AOE::SourceComponent", EditConditionHides))
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::SourceComponent", EditConditionHides))
 	FName ComponentTag = NAME_None;
 	
 public:
