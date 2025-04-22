@@ -14,6 +14,11 @@
 
 UVigilComponent* UVigilStatics::FindVigilComponent(AActor* Actor)
 {
+	if (!IsValid(Actor))
+	{
+		return nullptr;
+	}
+	
 	// Only Local and Authority has a PlayerController
 	if (Actor->GetLocalRole() == ROLE_SimulatedProxy)
 	{
