@@ -9,6 +9,11 @@
 #include "Types/TargetingSystemTypes.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/PrimitiveComponent.h"
+
+#if ENABLE_VISUAL_LOG
+#include "VisualLogger/VisualLogger.h"
+#endif
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingStatics)
 
