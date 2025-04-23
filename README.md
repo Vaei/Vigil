@@ -23,7 +23,7 @@
 
 ## What is Vigil?
 
-In the simplest terms possible, Vigil can determine what the player is looking at -- what they want to interact with, who they want to auto-target with their healing spell, which enemy they want to lock onto.
+Vigil determines what the player is looking at. What they want to interact with. Which ally they want to auto-target with their healing spell. Which enemy they want to lock onto.
 
 ## Watch Me
 
