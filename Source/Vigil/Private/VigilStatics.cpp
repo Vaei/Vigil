@@ -22,6 +22,8 @@
 
 UVigilComponent* UVigilStatics::FindVigilComponentForPawn(APawn* Pawn)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForPawn);
+	
 	if (!IsValid(Pawn))
 	{
 		return nullptr;
@@ -42,6 +44,8 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPawn(APawn* Pawn)
 
 UVigilComponent* UVigilStatics::FindVigilComponentForController(AController* Controller)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForController);
+	
 	if (!IsValid(Controller))
 	{
 		return nullptr;
@@ -62,6 +66,8 @@ UVigilComponent* UVigilStatics::FindVigilComponentForController(AController* Con
 
 UVigilComponent* UVigilStatics::FindVigilComponentForPlayerController(APlayerController* Controller)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForPlayerController);
+	
 	if (!IsValid(Controller))
 	{
 		return nullptr;
@@ -78,6 +84,8 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPlayerController(APlayerCon
 
 UVigilComponent* UVigilStatics::FindVigilComponentForPlayerState(APlayerState* PlayerState)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForPlayerState);
+	
 	if (!IsValid(PlayerState))
 	{
 		return nullptr;
@@ -98,6 +106,8 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPlayerState(APlayerState* P
 
 float UVigilStatics::GetDistanceToVigilTarget(const FHitResult& HitResult, float& NormalizedDistance, float& MaxDistance)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::GetDistanceToVigilTarget);
+	
 	// This is the location we traced from to find a target
 	const FVector SourceLocation = HitResult.TraceStart;
 
@@ -112,6 +122,8 @@ float UVigilStatics::GetDistanceToVigilTarget(const FHitResult& HitResult, float
 
 float UVigilStatics::GetAngleToVigilTarget(const FHitResult& HitResult, float& NormalizedAngle, float& MaxAngle)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::GetAngleToVigilTarget);
+	
 	// This is the location we traced from to find a target
 	const FVector SourceLocation = HitResult.TraceStart;
 

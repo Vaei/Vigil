@@ -395,6 +395,8 @@ void UVigilScanTask::OnRequestVigil()
 
 void UVigilScanTask::OnRequestNetSync(EVigilNetSyncType SyncType)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::OnRequestNetSync);
+	
 	if (!IsValid(Ability) || !IsValid(GetOwnerActor()) || !VC.IsValid())
 	{
 		return;
@@ -422,6 +424,8 @@ void UVigilScanTask::OnRequestNetSync(EVigilNetSyncType SyncType)
 
 void UVigilScanTask::OnNetSync(UVigilNetSyncTask* SyncTask)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::OnNetSync);
+	
 	// Remove finished net sync
 	if (IsValid(SyncTask))
 	{
@@ -440,6 +444,8 @@ void UVigilScanTask::OnNetSync(UVigilNetSyncTask* SyncTask)
 
 void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::OnDestroy);
+	
 	if (IsValid(GetWorld()))
 	{
 		GetWorld()->GetTimerManager().ClearAllTimersForObject(this);

@@ -10,6 +10,8 @@ DEFINE_LOG_CATEGORY(LogVigil);
 bool FVigilConeShape::IsPointWithinCone(const FVector& Point, const FVector& ConeOrigin,
 	const FVector& ConeDirection) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilConeShape::IsPointWithinCone);
+	
 	const FVector ToPoint = Point - ConeOrigin;
 
 	// Project onto cone's forward vector
@@ -37,6 +39,8 @@ bool FVigilConeShape::IsPointWithinCone(const FVector& Point, const FVector& Con
 
 FVector FVigilConeShape::GetConeBoxShapeHalfExtent() const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilConeShape::GetConeBoxShapeHalfExtent);
+	
 	// Convert to radians
 	const float HalfAngleWidth = FMath::DegreesToRadians(0.5f * AngleWidth);
 	const float HalfAngleHeight = FMath::DegreesToRadians(0.5f * AngleHeight);
@@ -53,5 +57,7 @@ FVector FVigilConeShape::GetConeBoxShapeHalfExtent() const
 FVigilConeShape FVigilConeShape::MakeConeFromScalableFloat(const FScalableFloat& Length,
 	const FScalableFloat& AngleWidth, const FScalableFloat& AngleHeight)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilConeShape::MakeConeFromScalableFloat);
+	
 	return FVigilConeShape(Length.GetValue(), AngleWidth.GetValue(), AngleHeight.GetValue());
 }

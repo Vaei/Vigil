@@ -121,6 +121,8 @@ void UVigilComponent::UpdateTargetingPresets()
 
 FVigilFocusResult UVigilComponent::GetFocusResult(FGameplayTag FocusTag, bool& bValid) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::GetFocusResult);
+	
 	if (const FVigilFocusResult* Result = CurrentFocusResults.Find(FocusTag))
 	{
 		bValid = Result->HitResult.GetActor() != nullptr;
@@ -132,6 +134,8 @@ FVigilFocusResult UVigilComponent::GetFocusResult(FGameplayTag FocusTag, bool& b
 
 AActor* UVigilComponent::GetFocusActor(FGameplayTag FocusTag) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::GetFocusActor);
+	
 	if (const FVigilFocusResult* Result = CurrentFocusResults.Find(FocusTag))
 	{
 		return Result->HitResult.GetActor();
@@ -141,6 +145,8 @@ AActor* UVigilComponent::GetFocusActor(FGameplayTag FocusTag) const
 
 void UVigilComponent::VigilTargetsReady(const FGameplayTag& FocusTag, const TArray<FVigilFocusResult>& Results)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::VigilTargetsReady);
+	
 	// Update our current focus results
 	FVigilFocusResult& Focus = CurrentFocusResults.FindOrAdd(FocusTag);
 	AActor* LastFocusActor = Focus.HitResult.GetActor();
@@ -223,6 +229,8 @@ void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag, bool b
 
 void UVigilComponent::RequestResyncVigil(EVigilNetSyncType SyncType)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::RequestResyncVigil);
+	
 	if (OnVigilNetSync.IsBound())
 	{
 		OnVigilNetSync.Broadcast(SyncType);

@@ -43,6 +43,8 @@ UVigilFilter_LOS::UVigilFilter_LOS(const FObjectInitializer& ObjectInitializer)
 bool UVigilFilter_LOS::ShouldFilterTarget(const FTargetingRequestHandle& TargetingHandle,
 	const FTargetingDefaultResultData& TargetData) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilFilter_LOS::ShouldFilterTarget);
+
 	const UWorld* World = GetSourceContextWorld(TargetingHandle);
 	if (World && TargetingHandle.IsValid())
 	{

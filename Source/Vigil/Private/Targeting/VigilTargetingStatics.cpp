@@ -14,6 +14,8 @@
 FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle& TargetingHandle,
 	EVigilTargetLocationSource LocationSource)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetingStatics::GetSourceLocation);
+	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
 		if (SourceContext->SourceActor)
@@ -48,6 +50,8 @@ FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle&
 FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& TargetingHandle,
 	EVigilTargetLocationSource LocationSource, FVector DefaultSourceLocationOffset, bool bUseRelativeLocationOffset)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetingStatics::GetSourceOffset);
+	
 	if (!bUseRelativeLocationOffset)
 	{
 		return DefaultSourceLocationOffset;
@@ -91,6 +95,8 @@ FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& T
 
 FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource RotationSource)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetingStatics::GetSourceRotation);
+	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
 		if (SourceContext->SourceActor)
@@ -122,6 +128,8 @@ FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& T
 void UVigilTargetingStatics::InitCollisionParams(const FTargetingRequestHandle& TargetingHandle,
 	FCollisionQueryParams& OutParams, bool bIgnoreSourceActor, bool bIgnoreInstigatorActor, bool bTraceComplex)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetingStatics::InitCollisionParams);
+	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
 		if (bIgnoreSourceActor && SourceContext->SourceActor)

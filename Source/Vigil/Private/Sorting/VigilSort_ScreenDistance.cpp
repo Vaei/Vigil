@@ -21,7 +21,9 @@ float UVigilSort_ScreenDistance::GetScoreForTarget_Implementation(const FTargeti
 	{
 		return 0.f;
 	}
-	
+
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilSort_ScreenDistance::GetScoreForTarget);
+
 	const UTargetingSubsystem* TargetSubsystem = GetTargetingSubsystem(TargetingHandle);
 	if (APlayerController* PC = TargetSubsystem ? UGameplayStatics::GetPlayerController(TargetSubsystem->GetWorld(), 0) : nullptr)
 	{

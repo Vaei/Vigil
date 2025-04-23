@@ -30,6 +30,8 @@ UVigilSortBase::UVigilSortBase(const FObjectInitializer& ObjectInitializer)
 
 void UVigilSortBase::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilSortBase::Execute);
+	
 	Super::Execute(TargetingHandle);
 
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Executing);

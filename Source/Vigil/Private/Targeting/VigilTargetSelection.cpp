@@ -81,7 +81,7 @@ FQuat UVigilTargetSelection::GetSourceRotationOffset_Implementation(
 
 void UVigilTargetSelection::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
-	Super::Execute(TargetingHandle);
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::Execute);
 	
 	SetTaskAsyncState(TargetingHandle, ETargetingTaskAsyncState::Executing);
 
@@ -102,6 +102,8 @@ void UVigilTargetSelection::ExecuteImmediateTrace(const FTargetingRequestHandle&
 #if UE_ENABLE_DEBUG_DRAWING
 	ResetDebugString(TargetingHandle);
 #endif // UE_ENABLE_DEBUG_DRAWING
+
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::ExecuteImmediateTrace);
 
 	const UWorld* World = GetSourceContextWorld(TargetingHandle);
 	if (World && TargetingHandle.IsValid())
@@ -167,6 +169,8 @@ void UVigilTargetSelection::ExecuteImmediateTrace(const FTargetingRequestHandle&
 
 void UVigilTargetSelection::ExecuteAsyncTrace(const FTargetingRequestHandle& TargetingHandle) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::ExecuteAsyncTrace);
+	
 	UWorld* World = GetSourceContextWorld(TargetingHandle);
 	if (World && TargetingHandle.IsValid())
 	{
@@ -212,6 +216,8 @@ void UVigilTargetSelection::ExecuteAsyncTrace(const FTargetingRequestHandle& Tar
 void UVigilTargetSelection::HandleAsyncOverlapComplete(const FTraceHandle& InTraceHandle,
 	FOverlapDatum& InOverlapDatum, FTargetingRequestHandle TargetingHandle) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::HandleAsyncOverlapComplete);
+	
 	if (TargetingHandle.IsValid())
 	{
 #if UE_ENABLE_DEBUG_DRAWING
@@ -236,6 +242,8 @@ void UVigilTargetSelection::HandleAsyncOverlapComplete(const FTraceHandle& InTra
 int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle& TargetingHandle,
 	const TArray<FOverlapResult>& Overlaps) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::ProcessOverlapResults);
+	
 	// process the overlaps
 	int32 NumValidResults = 0;
 	if (Overlaps.Num() > 0)
@@ -388,6 +396,8 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 
 FCollisionShape UVigilTargetSelection::GetCollisionShape() const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::GetCollisionShape);
+	
 	switch (ShapeType)
 	{
 	case EVigilTargetingShape::Cone: return FCollisionShape::MakeBox(GetConeShape().GetConeBoxShapeHalfExtent());
@@ -403,6 +413,8 @@ FCollisionShape UVigilTargetSelection::GetCollisionShape() const
 const UPrimitiveComponent* UVigilTargetSelection::GetCollisionComponent(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::GetCollisionComponent);
+	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
 		if (SourceContext->SourceActor)

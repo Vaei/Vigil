@@ -12,6 +12,8 @@
 float UVigilSort_WeightedAngleDistance::GetScoreForTarget_Implementation(const FTargetingRequestHandle& TargetingHandle,
 	const FTargetingDefaultResultData& TargetData) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilSort_WeightedAngleDistance::GetScoreForTarget);
+	
 	float Dist, Angle, Max;
 	UVigilStatics::GetDistanceToVigilTarget(TargetData.HitResult, Dist, Max);
 	UVigilStatics::GetAngleToVigilTarget(TargetData.HitResult, Angle, Max);

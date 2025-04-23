@@ -12,6 +12,8 @@
 float UVigilSort_Angle::GetScoreForTarget_Implementation(const FTargetingRequestHandle& TargetingHandle,
 	const FTargetingDefaultResultData& TargetData) const
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilSort_Angle::GetScoreForTarget);
+	
 	float Score, Max;
 	UVigilStatics::GetAngleToVigilTarget(TargetData.HitResult, Score, Max);
 	return Score;

@@ -16,6 +16,8 @@ UVigilNetSyncTask::UVigilNetSyncTask(const FObjectInitializer& ObjectInitializer
 
 void UVigilNetSyncTask::OnSignalCallback()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilNetSyncTask::OnSignalCallback);
+	
 	if (AbilitySystemComponent.IsValid())
 	{
 		AbilitySystemComponent->ConsumeGenericReplicatedEvent(ReplicatedEventToListenFor, GetAbilitySpecHandle(), GetActivationPredictionKey());
@@ -25,6 +27,8 @@ void UVigilNetSyncTask::OnSignalCallback()
 
 UVigilNetSyncTask* UVigilNetSyncTask::WaitNetSync(class UGameplayAbility* OwningAbility, EVigilNetSyncType InSyncType)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilNetSyncTask::WaitNetSync);
+	
 	UVigilNetSyncTask* MyObj = NewAbilityTask<UVigilNetSyncTask>(OwningAbility);
 	MyObj->SyncType = InSyncType;
 	return MyObj;
@@ -32,6 +36,8 @@ UVigilNetSyncTask* UVigilNetSyncTask::WaitNetSync(class UGameplayAbility* Owning
 
 void UVigilNetSyncTask::Activate()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilNetSyncTask::Activate);
+
 	FScopedPredictionWindow ScopedPrediction(AbilitySystemComponent.Get(), IsPredictingClient());
 
 	if (AbilitySystemComponent.IsValid())
@@ -78,6 +84,8 @@ void UVigilNetSyncTask::Activate()
 
 void UVigilNetSyncTask::SyncFinished()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilNetSyncTask::SyncFinished);
+	
 	if (IsValid(this))
 	{
 		if (ShouldBroadcastAbilityTaskDelegates())
