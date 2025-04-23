@@ -11,9 +11,10 @@
 #include "UObject/ObjectKey.h"
 #include "VigilComponent.generated.h"
 
+class AController;
 
 /**
- * Add to your PlayerController
+ * Add to your Controller
  * Interfaces with the passive VigilScanAbility and handles resulting data
  * Subclass this to add custom functionality
  */
@@ -64,9 +65,9 @@ public:
 	TMap<FGameplayTag, FTargetingRequestHandle> TargetingRequests;
 
 protected:
-	/** Owning player controller */
+	/** Owning controller */
 	UPROPERTY(Transient, DuplicateTransient)
-	TObjectPtr<APlayerController> PlayerController = nullptr;
+	TObjectPtr<AController> Controller = nullptr;
 
 public:
 	/** Delegate called when a targeting request is completed, populated with targeting results */

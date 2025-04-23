@@ -19,9 +19,9 @@ DECLARE_DYNAMIC_DELEGATE(FOnRequestVigilBP);
 UENUM(BlueprintType)
 enum class EVigilTargetingSource : uint8
 {
-	Pawn						UMETA(ToolTip="Use the controlled Pawn as the targeting source"),
-	PawnIfValid					UMETA(ToolTip="Use the controlled Pawn as the targeting source, or the PlayerController if invalid"),
-	PlayerController			UMETA(ToolTip="Use the PlayerController as the targeting source"),
+	Pawn				UMETA(ToolTip="Use the controlled Pawn as the targeting source"),
+	PawnIfValid			UMETA(ToolTip="Use the controlled Pawn as the targeting source, or the Controller if invalid"),
+	Controller			UMETA(ToolTip="Use the Controller as the targeting source"),
 };
 
 UENUM(BlueprintType)

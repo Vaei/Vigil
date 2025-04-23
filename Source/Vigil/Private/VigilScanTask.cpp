@@ -6,7 +6,7 @@
 #include "VigilComponent.h"
 #include "VigilNetSyncTask.h"
 #include "GameFramework/PlayerState.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "TargetingSystem/TargetingSubsystem.h"
 #include "Engine/Engine.h"
@@ -90,39 +90,39 @@ void UVigilScanTask::RequestVigil()
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Trying to cache VigilComponent..."), *GetRoleString());
 		
-		// Get the owning player controller
+		// Get the owning controller
 		const TWeakObjectPtr<AActor>& WeakOwner = Ability->GetCurrentActorInfo()->OwnerActor;
-		const APlayerController* PlayerController = nullptr;
+		const AController* Controller = nullptr;
 		if (const APawn* Pawn = Cast<APawn>(WeakOwner.Get()))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve player controller from owner pawn"), *GetRoleString());
-			PlayerController = Pawn->GetController<APlayerController>();
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve controller from owner pawn"), *GetRoleString());
+			Controller = Pawn->GetController<AController>();
 		}
 		else if (const APlayerState* PlayerState = Cast<APlayerState>(WeakOwner.Get()))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve player controller from owner player state"), *GetRoleString());
-			PlayerController = PlayerState->GetPlayerController();
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Retrieve controller from owner player state"), *GetRoleString());
+			Controller = PlayerState->GetOwningController();
 		}
-		else if (const APlayerController* PC = Cast<APlayerController>(WeakOwner.Get()))
+		else if (const AController* PC = Cast<AController>(WeakOwner.Get()))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Owner is a player controller"), *GetRoleString());
-			PlayerController = PC;
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Owner is a controller"), *GetRoleString());
+			Controller = PC;
 		}
 		else
 		{
-			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Could not retrieve player controller because owner is not a pawn or player state or player controller"), *GetRoleString());
+			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask::RequestVigil: Could not retrieve controller because owner is not a pawn or player state or controller"), *GetRoleString());
 		}
 		
-		// If the player controller is not valid, wait for a bit and try again
-		if (UNLIKELY(!PlayerController))
+		// If the controller is not valid, wait for a bit and try again
+		if (UNLIKELY(!Controller))
 		{
-			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid player controller. [SYSTEM WAIT]"), *GetRoleString());
-			WaitForVigil(0.5f, {"Invalid PlayerController"});
+			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid controller. [SYSTEM WAIT]"), *GetRoleString());
+			WaitForVigil(0.5f, {"Invalid Controller"});
 			return;
 		}
 
-		// Find the VigilComponent on the player controller
-		VC = PlayerController->FindComponentByClass<UVigilComponent>();
+		// Find the VigilComponent on the controller
+		VC = Controller->FindComponentByClass<UVigilComponent>();
 		if (!VC.IsValid())
 		{
 #if !UE_BUILD_SHIPPING
@@ -130,7 +130,7 @@ void UVigilScanTask::RequestVigil()
 			{
 				FMessageLog ("PIE").Error(FText::Format(
 					NSLOCTEXT("VigilScanTask", "VigilComponentNotFound", "VigilComponent not found on {0}"),
-					FText::FromString(PlayerController->GetName())));
+					FText::FromString(Controller->GetName())));
 			}
 #endif
 

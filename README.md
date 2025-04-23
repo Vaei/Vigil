@@ -58,6 +58,10 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.2.0
+* Removed dependency on PlayerController
+	* Allows for use on AIController, however this is untested
+
 ### 1.1.0
 * Net prediction Workflow [see Wiki](https://github.com/Vaei/Vigil/wiki/Net-Prediction)
 * Add `FindVigilComponentForActor` to save a BP cast

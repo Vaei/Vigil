@@ -22,7 +22,7 @@ class VIGIL_API UVigilStatics : public UBlueprintFunctionLibrary
 public:
 	/**
 	 * Attempts to find a Vigil Component for the given Actor
-	 * Must be Pawn, PlayerController, or PlayerState or will return nullptr
+	 * Must be Pawn, Controller, or PlayerState or will return nullptr
 	 * Will return nullptr on SimulatedProxy
 	 */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
@@ -36,19 +36,11 @@ public:
 	static UVigilComponent* FindVigilComponentForPawn(APawn* Pawn);
 
 	/**
-	 * Attempts to find a Vigil Component for the given Player Controller
-	 * Will return nullptr for non-PlayerController Controller
+	 * Attempts to find a Vigil Component for the given Controller
 	 * Will return nullptr on SimulatedProxy
 	 */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
 	static UVigilComponent* FindVigilComponentForController(AController* Controller);
-
-	/**
-	 * Attempts to find a Vigil Component for the given PlayerController
-	 * Will return nullptr on SimulatedProxy
-	 */
-	UFUNCTION(BlueprintCallable, Category=Vigil)
-	static UVigilComponent* FindVigilComponentForPlayerController(APlayerController* Controller);
 
 	/**
 	 * Attempts to find a Vigil Component for the given PlayerState
@@ -81,16 +73,16 @@ public:
 	
 public:
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Draw Debug Results", Keywords="debug", DevelopmentOnly))
-	static void VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
+	static void VigilDrawDebugResults(AController* Controller, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, float DrawDuration=0.05f, bool bLocatorAngle = true,
 		bool bLocatorDistance = false);
 
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Add Visual Logger Results", Keywords="debug", DevelopmentOnly))
-	static void VigilAddVisualLoggerResults(APlayerController* PC, const FGameplayTag& FocusTag,
+	static void VigilAddVisualLoggerResults(AController* Controller, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, bool bLocatorAngle = true,
 		bool bLocatorDistance = false);
 
-	static void VigilDrawDebugResults_Internal(APlayerController* PC, const FGameplayTag& FocusTag,
+	static void VigilDrawDebugResults_Internal(AController* Controller, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults,
 		TFunction<void(const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)> DrawStringFunc,
 		TFunction<void(const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)> DrawCircleFunc,

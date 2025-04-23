@@ -29,33 +29,33 @@ UVigilComponent* UVigilStatics::FindVigilComponentForActor(AActor* Actor)
 		return nullptr;
 	}
 
-	// Only Local and Authority has a PlayerController
+	// Only Local and Authority has a Controller
 	if (Actor->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		return nullptr;
 	}
 
-	// Maybe the actor is a player controller
-	if (const APlayerController* PlayerController = Cast<APlayerController>(Actor))
+	// Maybe the actor is a controller
+	if (const AController* Controller = Cast<AController>(Actor))
 	{
-		return PlayerController->FindComponentByClass<UVigilComponent>();
+		return Controller->FindComponentByClass<UVigilComponent>();
 	}
 
 	// Maybe the actor is a pawn
 	if (const APawn* Pawn = Cast<APawn>(Actor))
 	{
-		if (const APlayerController* PlayerController = Pawn->GetController<APlayerController>())
+		if (const AController* Controller = Pawn->GetController())
 		{
-			return PlayerController->FindComponentByClass<UVigilComponent>();
+			return Controller->FindComponentByClass<UVigilComponent>();
 		}
 	}
 
 	// Maybe the actor is a player state
 	if (const APlayerState* PlayerState = Cast<APlayerState>(Actor))
 	{
-		if (const APlayerController* PlayerController = PlayerState->GetPlayerController())
+		if (const AController* Controller = PlayerState->GetOwningController())
 		{
-			return PlayerController->FindComponentByClass<UVigilComponent>();
+			return Controller->FindComponentByClass<UVigilComponent>();
 		}
 	}
 
@@ -72,15 +72,15 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPawn(APawn* Pawn)
 		return nullptr;
 	}
 	
-	// Only Local and Authority has a PlayerController
+	// Only Local and Authority has a Controller
 	if (Pawn->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		return nullptr;
 	}
 	
-	if (const APlayerController* PlayerController = Pawn->GetController<APlayerController>())
+	if (const AController* Controller = Pawn->GetController())
 	{
-		return PlayerController->FindComponentByClass<UVigilComponent>();
+		return Controller->FindComponentByClass<UVigilComponent>();
 	}
 	return nullptr;
 }
@@ -94,34 +94,12 @@ UVigilComponent* UVigilStatics::FindVigilComponentForController(AController* Con
 		return nullptr;
 	}
 	
-	// Only Local and Authority has a PlayerController
+	// Only Local and Authority has a Controller
 	if (Controller->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		return nullptr;
 	}
 	
-	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		return PlayerController->FindComponentByClass<UVigilComponent>();
-	}
-	return nullptr;
-}
-
-UVigilComponent* UVigilStatics::FindVigilComponentForPlayerController(APlayerController* Controller)
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForPlayerController);
-	
-	if (!IsValid(Controller))
-	{
-		return nullptr;
-	}
-	
-	// Only Local and Authority has a PlayerController
-	if (Controller->GetLocalRole() == ROLE_SimulatedProxy)
-	{
-		return nullptr;
-	}
-
 	return Controller->FindComponentByClass<UVigilComponent>();
 }
 
@@ -134,15 +112,15 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPlayerState(APlayerState* P
 		return nullptr;
 	}
 	
-	// Only Local and Authority has a PlayerController
+	// Only Local and Authority has a Controller
 	if (PlayerState->GetLocalRole() == ROLE_SimulatedProxy)
 	{
 		return nullptr;
 	}
 	
-	if (const APlayerController* PlayerController = PlayerState->GetPlayerController())
+	if (const AController* Controller = PlayerState->GetOwningController())
 	{
-		return PlayerController->FindComponentByClass<UVigilComponent>();
+		return Controller->FindComponentByClass<UVigilComponent>();
 	}
 	return nullptr;
 }
@@ -195,16 +173,16 @@ FString UVigilStatics::NetSyncToString(EVigilNetSyncType SyncType)
 	}
 }
 
-void UVigilStatics::VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
+void UVigilStatics::VigilDrawDebugResults(AController* Controller, const FGameplayTag& FocusTag,
 	const TArray<FVigilFocusResult>& FocusResults, float DrawDuration, bool bLocatorAngle, bool bLocatorDistance)
 {
 #if UE_ENABLE_DEBUG_DRAWING
-	if (!IsValid(PC) || !PC->GetHUD() || !PC->GetWorld())
+	if (!IsValid(Controller) || !Controller->GetWorld())
 	{
 		return;
 	}
 
-	VigilDrawDebugResults_Internal(PC, FocusTag, FocusResults,
+	VigilDrawDebugResults_Internal(Controller, FocusTag, FocusResults,
 		[](const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)
 		{
 			DrawDebugString(World, Location, Info, nullptr, Color, Duration, true, 1.f);
@@ -217,29 +195,29 @@ void UVigilStatics::VigilDrawDebugResults(APlayerController* PC, const FGameplay
 #endif
 }
 
-void UVigilStatics::VigilAddVisualLoggerResults(APlayerController* PC, const FGameplayTag& FocusTag,
+void UVigilStatics::VigilAddVisualLoggerResults(AController* Controller, const FGameplayTag& FocusTag,
 	const TArray<FVigilFocusResult>& FocusResults, bool bLocatorAngle, bool bLocatorDistance)
 {
 #if ENABLE_VISUAL_LOG
-	if (!IsValid(PC) || !PC->GetWorld())
+	if (!IsValid(Controller) || !Controller->GetWorld())
 	{
 		return;
 	}
 
-	VigilDrawDebugResults_Internal(PC, FocusTag, FocusResults,
-	[PC](const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)
+	VigilDrawDebugResults_Internal(Controller, FocusTag, FocusResults,
+	[Controller](const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float Duration)
 	{
-		UE_VLOG_LOCATION(PC, LogVigil, Log, Location, 2.f, Color, TEXT("%s"), *Info);
+		UE_VLOG_LOCATION(Controller, LogVigil, Log, Location, 2.f, Color, TEXT("%s"), *Info);
 	},
-	[PC](const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)
+	[Controller](const UWorld* World, const FMatrix& Matrix, float Radius, const FColor& Color, float Duration)
 	{
-		UE_VLOG_CIRCLE_THICK(PC, LogVigil, Log, Matrix.GetOrigin(), Matrix.GetScaledAxis(EAxis::X), Radius * 1.25f, Color, 4.f, TEXT(""));
+		UE_VLOG_CIRCLE_THICK(Controller, LogVigil, Log, Matrix.GetOrigin(), Matrix.GetScaledAxis(EAxis::X), Radius * 1.25f, Color, 4.f, TEXT(""));
 	},
 	bLocatorAngle, bLocatorDistance, 0.f);
 #endif
 }
 
-void UVigilStatics::VigilDrawDebugResults_Internal(APlayerController* PC, const FGameplayTag& FocusTag,
+void UVigilStatics::VigilDrawDebugResults_Internal(AController* Controller, const FGameplayTag& FocusTag,
 	const TArray<FVigilFocusResult>& FocusResults,
 	TFunction<void(const UWorld* World, const FVector& Location, const FString& Info, const FColor& Color, float
 	Duration)> DrawStringFunc,
@@ -247,7 +225,7 @@ void UVigilStatics::VigilDrawDebugResults_Internal(APlayerController* PC, const 
 	DrawCircleFunc, bool bLocatorAngle, bool bLocatorDistance, float DrawDuration)
 {
 #if UE_ENABLE_DEBUG_DRAWING
-	if (!IsValid(PC) || !PC->GetWorld())
+	if (!IsValid(Controller) || !Controller->GetWorld())
 	{
 		return;
 	}
@@ -294,7 +272,7 @@ void UVigilStatics::VigilDrawDebugResults_Internal(APlayerController* PC, const 
 		const FVector InfoLocation = WorldLocation + (Right * Offset) + (Up * -Offset);
 
 		// Draw the text
-		DrawStringFunc(PC->GetWorld(), InfoLocation, Info, GetColor(i), DrawDuration);
+		DrawStringFunc(Controller->GetWorld(), InfoLocation, Info, GetColor(i), DrawDuration);
 		// DrawDebugString(PC->GetWorld(), InfoLocation, Info, nullptr, GetColor(i), DrawDuration, true, 1.f);
 
 		// Draw a locator
@@ -327,7 +305,7 @@ void UVigilStatics::VigilDrawDebugResults_Internal(APlayerController* PC, const 
 			const FColor LocatorColor = (FLinearColor(GetColor(i)) * 0.5f).ToFColor(true);
 			FMatrix LocatorMatrix = FRotationMatrix::MakeFromX(WorldNormal);
 			LocatorMatrix.SetOrigin(WorldLocation);
-			DrawCircleFunc(PC->GetWorld(), LocatorMatrix, LocatorRadius, LocatorColor, DrawDuration);
+			DrawCircleFunc(Controller->GetWorld(), LocatorMatrix, LocatorRadius, LocatorColor, DrawDuration);
 			// DrawDebugCircle(PC->GetWorld(), LocatorMatrix, LocatorRadius, 16, LocatorColor, false, DrawDuration, 10, 2.f);
 		}
 	}

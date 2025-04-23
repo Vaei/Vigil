@@ -4,7 +4,7 @@
 #include "VigilComponent.h"
 
 #include "TargetingSystem/TargetingSubsystem.h"
-#include "GameFramework/PlayerController.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
@@ -29,16 +29,16 @@ AActor* UVigilComponent::GetTargetingSource_Implementation() const
 	
 	switch (DefaultTargetingSource)
 	{
-	case EVigilTargetingSource::Pawn: return PlayerController ? PlayerController->GetPawn() : nullptr;
+	case EVigilTargetingSource::Pawn: return Controller ? Controller->GetPawn() : nullptr;
 	case EVigilTargetingSource::PawnIfValid:
 		{
-			if (PlayerController && PlayerController->GetPawn())
+			if (Controller && Controller->GetPawn())
 			{
-				return PlayerController->GetPawn();
+				return Controller->GetPawn();
 			}
-			return PlayerController;
+			return Controller;
 		}
-	case EVigilTargetingSource::PlayerController: return PlayerController;
+	case EVigilTargetingSource::Controller: return Controller;
 	}
 	return nullptr;
 }
@@ -52,8 +52,8 @@ void UVigilComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Cache the owning player controller
-	PlayerController = Cast<APlayerController>(GetOwner());
+	// Cache the owning controller
+	Controller = Cast<AController>(GetOwner());
 
 	// Cache the preset update mode to detect changed
 	bLastUpdateTargetingPresetsOnPawnChange = bUpdateTargetingPresetsOnPawnChange;
@@ -69,18 +69,18 @@ void UVigilComponent::UpdatePawnChangedBinding()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::UpdatePawnChangedBinding);
 
-	// We call this if TargetingPresetUpdateMode changed to allow this property to be modified during runtime
+	// We call this if we changed to allow this property to be modified during runtime
 	
-	if (IsValid(PlayerController))
+	if (IsValid(Controller))
 	{
-		if (PlayerController->OnPossessedPawnChanged.IsAlreadyBound(this, &ThisClass::OnPawnChanged))
+		if (Controller->OnPossessedPawnChanged.IsAlreadyBound(this, &ThisClass::OnPawnChanged))
 		{
-			PlayerController->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::OnPawnChanged);
+			Controller->OnPossessedPawnChanged.RemoveDynamic(this, &ThisClass::OnPawnChanged);
 		}
 		
 		if (bUpdateTargetingPresetsOnPawnChange || bEndTargetingRequestsOnPawnChange)
 		{
-			PlayerController->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::OnPawnChanged);
+			Controller->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::OnPawnChanged);
 		}
 	}
 }
