@@ -61,3 +61,36 @@ FVigilConeShape FVigilConeShape::MakeConeFromScalableFloat(const FScalableFloat&
 	
 	return FVigilConeShape(Length.GetValue(), AngleWidth.GetValue(), AngleHeight.GetValue());
 }
+
+FVigilNetSyncDelegateHandler::FVigilNetSyncDelegateHandler(FOnVigilNetSyncCompleted&& InDelegate)
+	: Delegate(InDelegate)
+	, DelegateHandle(FDelegateHandle::EGenerateNewHandleType::GenerateNewHandle)
+	, bRemoved(false)
+{
+}
+
+FVigilNetSyncDelegateHandler::FVigilNetSyncDelegateHandler(FOnVigilNetSyncCompletedBP&& InDelegate)
+	: DelegateBP(InDelegate)
+	, DelegateHandle(FDelegateHandle::EGenerateNewHandleType::GenerateNewHandle)
+	, bRemoved(false)
+{
+}
+
+void FVigilNetSyncDelegateHandler::Execute() const
+{
+	if (bRemoved)
+	{
+		return;
+	}
+
+	if (Delegate.IsBound())
+	{
+		ensure(!DelegateBP.IsBound());
+
+		Delegate.Execute();
+	}
+	else if (DelegateBP.IsBound())
+	{
+		DelegateBP.Execute();
+	}
+}

@@ -20,6 +20,49 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilStatics)
 
 
+UVigilComponent* UVigilStatics::FindVigilComponentForActor(AActor* Actor)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForActor);
+
+	if (!IsValid(Actor))
+	{
+		return nullptr;
+	}
+
+	// Only Local and Authority has a PlayerController
+	if (Actor->GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		return nullptr;
+	}
+
+	// Maybe the actor is a player controller
+	if (const APlayerController* PlayerController = Cast<APlayerController>(Actor))
+	{
+		return PlayerController->FindComponentByClass<UVigilComponent>();
+	}
+
+	// Maybe the actor is a pawn
+	if (const APawn* Pawn = Cast<APawn>(Actor))
+	{
+		if (const APlayerController* PlayerController = Pawn->GetController<APlayerController>())
+		{
+			return PlayerController->FindComponentByClass<UVigilComponent>();
+		}
+	}
+
+	// Maybe the actor is a player state
+	if (const APlayerState* PlayerState = Cast<APlayerState>(Actor))
+	{
+		if (const APlayerController* PlayerController = PlayerState->GetPlayerController())
+		{
+			return PlayerController->FindComponentByClass<UVigilComponent>();
+		}
+	}
+
+	// Unsupported actor
+	return nullptr;
+}
+
 UVigilComponent* UVigilStatics::FindVigilComponentForPawn(APawn* Pawn)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::FindVigilComponentForPawn);
@@ -139,6 +182,17 @@ float UVigilStatics::GetAngleToVigilTarget(const FHitResult& HitResult, float& N
 	const float AngleDiff = FMath::RadiansToDegrees(FMath::Acos(AngleDot));
 	NormalizedAngle = FMath::Clamp(AngleDiff / MaxAngle, 0.f, 1.f);
 	return AngleDiff;
+}
+
+FString UVigilStatics::NetSyncToString(EVigilNetSyncType SyncType)
+{
+	switch (SyncType)
+	{
+	case EVigilNetSyncType::BothWait: return TEXT("BothWait");
+	case EVigilNetSyncType::OnlyServerWait: return TEXT("OnlyServerWait");
+	case EVigilNetSyncType::OnlyClientWait: return TEXT("OnlyClientWait");
+	default: return TEXT("Unknown");
+	}
 }
 
 void UVigilStatics::VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,

@@ -14,6 +14,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVigil, Log, All);
 
 DECLARE_DELEGATE_OneParam(FOnPauseVigil, bool /* bIsPaused */);
 DECLARE_DELEGATE(FOnRequestVigil);
+DECLARE_DYNAMIC_DELEGATE(FOnRequestVigilBP);
 
 UENUM(BlueprintType)
 enum class EVigilTargetingSource : uint8
@@ -35,8 +36,16 @@ enum class EVigilNetSyncType : uint8  // Avoid having to include AbilityTask_Net
 	/** Only client will wait for the server signal. Server will signal and immediately continue without waiting to hear from Client. */
 	OnlyClientWait	
 };
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnVigilSync, EVigilNetSyncType, SyncType);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVigilSyncCompleted);
+DECLARE_DELEGATE_OneParam(FOnVigilSyncRequested, EVigilNetSyncType SyncType);
+DECLARE_DELEGATE(FOnVigilNetSyncCompleted);
+DECLARE_DYNAMIC_DELEGATE(FOnVigilNetSyncCompletedBP);
+
+enum class EVigilNetSyncPendingState : uint8
+{
+	None,
+	Pending,
+	Completed
+};
 
 USTRUCT(BlueprintType)
 struct VIGIL_API FVigilConeShape
@@ -92,3 +101,34 @@ struct VIGIL_API FVigilFocusResult
 };
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnVigilTargetsReady, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, const TArray<FVigilFocusResult>&, Results);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FOnVigilFocusChanged, UVigilComponent*, VigilComponent, FGameplayTag, FocusTag, AActor*, Focus, AActor*, LastFocus, const FVigilFocusResult&, Result);
+
+struct VIGIL_API FVigilNetSyncDelegateHandler
+{
+	/** Construct from a native or BP Delegate */
+	FVigilNetSyncDelegateHandler(FOnVigilNetSyncCompleted&& InDelegate);
+	FVigilNetSyncDelegateHandler(FOnVigilNetSyncCompletedBP&& InDelegate);
+
+	/** Call the appropriate native/bp delegate, this could invalidate this struct */
+	void Execute() const;
+	
+	/** Delegate that is called on notification */
+	FOnVigilNetSyncCompleted Delegate;
+	
+	/** Delegate that is called on notification */
+	FOnVigilNetSyncCompletedBP DelegateBP;
+
+	/** A handle assigned to this delegate so it acts like a multicast delegate for removal */
+	FDelegateHandle DelegateHandle;
+	
+	/** Indicates this delegate has been removed and will soon be destroyed, do not execute */
+	bool bRemoved;
+};
+
+struct VIGIL_API FVigilNetSyncDelegateData
+{
+	/** Object class for cross-referencing with the class callbacks */
+	TWeakObjectPtr<UClass> ObjectClass;
+
+	/** All delegates bound to this object */
+	TArray<TSharedRef<FVigilNetSyncDelegateHandler>> RegisteredDelegates;
+};

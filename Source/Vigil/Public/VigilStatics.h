@@ -21,6 +21,14 @@ class VIGIL_API UVigilStatics : public UBlueprintFunctionLibrary
 
 public:
 	/**
+	 * Attempts to find a Vigil Component for the given Actor
+	 * Must be Pawn, PlayerController, or PlayerState or will return nullptr
+	 * Will return nullptr on SimulatedProxy
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil)
+	static UVigilComponent* FindVigilComponentForActor(AActor* Actor);
+	
+	/**
 	 * Attempts to find a Vigil Component for the given Pawn
 	 * Will return nullptr on SimulatedProxy
 	 */
@@ -67,7 +75,11 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Get Angle to Vigil Target"))
 	static float GetAngleToVigilTarget(const FHitResult& HitResult, float& NormalizedAngle, float& MaxAngle);
+
+public:
+	static FString NetSyncToString(EVigilNetSyncType SyncType);
 	
+public:
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Vigil Draw Debug Results", Keywords="debug", DevelopmentOnly))
 	static void VigilDrawDebugResults(APlayerController* PC, const FGameplayTag& FocusTag,
 		const TArray<FVigilFocusResult>& FocusResults, float DrawDuration=0.05f, bool bLocatorAngle = true,

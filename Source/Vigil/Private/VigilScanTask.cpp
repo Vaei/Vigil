@@ -18,6 +18,8 @@
 #include "Logging/MessageLog.h"
 #endif
 
+#include "VigilStatics.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilScanTask)
 
 namespace FVigilCVars
@@ -157,10 +159,10 @@ void UVigilScanTask::RequestVigil()
 		}
 
 		// Bind to net sync delegate
-		if (!VC->OnVigilNetSync.IsAlreadyBound(this, &ThisClass::OnRequestNetSync))
+		if (!VC->OnVigilSyncRequested.IsBoundToObject(this))
 		{
 			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Binding to OnVigilRequestNetSync"), *GetRoleString());
-			VC->OnVigilNetSync.AddDynamic(this, &ThisClass::OnRequestNetSync);
+			VC->OnVigilSyncRequested.BindUObject(this, &ThisClass::OnRequestNetSync);
 		}
 	}
 
@@ -258,9 +260,23 @@ void UVigilScanTask::RequestVigil()
 		FTargetingAsyncTaskData& AsyncTaskData = FTargetingAsyncTaskData::FindOrAdd(Handle);
 		AsyncTaskData.bReleaseOnCompletion = true;
 
-		TargetSubsystem->StartAsyncTargetingRequestWithHandle(Handle,
-			FTargetingRequestDelegate::CreateUObject(this, &ThisClass::OnVigilComplete, Tag));
-
+#if WITH_EDITOR
+		// Debug the frame where the call was made vs completed
+		const auto DebugFrame = GFrameCounter;
+#endif
+		
+		// If we just net synced then perform the request sync (immediate) so the prediction window remains valid
+		if (PendingNetSync == EVigilNetSyncPendingState::Pending)
+		{
+			TargetSubsystem->ExecuteTargetingRequestWithHandle(Handle,
+				FTargetingRequestDelegate::CreateUObject(this, &ThisClass::OnVigilCompleteSync, Tag));
+		}
+		else
+		{
+			TargetSubsystem->StartAsyncTargetingRequestWithHandle(Handle,
+				FTargetingRequestDelegate::CreateUObject(this, &ThisClass::OnVigilComplete, Tag));
+		}
+		
 		bAwaitingCallback = true;
 		
 		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::RequestVigil: Start async targeting for TargetingPresets[%s]: %s"), *GetRoleString(), *Tag.ToString(), *GetNameSafe(Preset));
@@ -292,10 +308,22 @@ void UVigilScanTask::RequestVigil()
 #endif
 }
 
+void UVigilScanTask::OnVigilCompleteSync(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag)
+{
+	PendingNetSync = EVigilNetSyncPendingState::Completed;
+	OnVigilComplete(TargetingHandle, FocusTag);
+	VC->OnNetSyncCallback();
+}
+
 void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::OnVigilComplete);
 
+#if WITH_EDITOR
+	// Debug the frame where the call was made vs completed
+	const auto DebugFrame = GFrameCounter;
+#endif
+	
 	const FString RoleStr = Ability->GetCurrentActorInfo()->IsNetAuthority() ? TEXT("Auth") : TEXT("Client");
 	
 	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: %s"), *GetRoleString(), *FocusTag.ToString());
@@ -410,6 +438,9 @@ void UVigilScanTask::OnRequestNetSync(EVigilNetSyncType SyncType)
 		return;
 	}
 
+	UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnRequestNetSync: SyncType: %s"), *GetRoleString(),
+		*UVigilStatics::NetSyncToString(SyncType));
+
 	// End targeting requests until we sync
 	VC->EndAllTargetingRequests(false);
 
@@ -418,13 +449,15 @@ void UVigilScanTask::OnRequestNetSync(EVigilNetSyncType SyncType)
 	WaitNetSync->OnSync.BindUObject(this, &ThisClass::OnNetSync);
 	WaitNetSync->ReadyForActivation();
 
-	// Track active sync points to prevent them getting GC'd prematurely
+	// Track active sync points to prevent them getting GCd prematurely
 	SyncTasks.Add(WaitNetSync);
 }
 
 void UVigilScanTask::OnNetSync(UVigilNetSyncTask* SyncTask)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::OnNetSync);
+
+	UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnNetSync: SyncTask: %s"), *GetRoleString(), *GetNameSafe(SyncTask));
 	
 	// Remove finished net sync
 	if (IsValid(SyncTask))
@@ -432,11 +465,8 @@ void UVigilScanTask::OnNetSync(UVigilNetSyncTask* SyncTask)
 		SyncTasks.RemoveSingle(SyncTask);
 	}
 
-	// Notify the VC that we're done
-	if (VC.IsValid() && VC->OnVigilNetSyncCompleted.IsBound())
-	{
-		VC->OnVigilNetSyncCompleted.Broadcast();
-	}
+	// Delay the callback until we get next targets
+	PendingNetSync = EVigilNetSyncPendingState::Pending;
 
 	// Request the next Vigil
 	RequestVigil();
@@ -460,9 +490,9 @@ void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 			{
 				VC->OnRequestVigil.Unbind();
 			}
-			if (VC->OnVigilNetSync.IsAlreadyBound(this, &ThisClass::OnRequestNetSync))
+			if (VC->OnVigilSyncRequested.IsBoundToObject(this))
 			{
-				VC->OnVigilNetSync.RemoveDynamic(this, &ThisClass::OnRequestNetSync);
+				VC->OnVigilSyncRequested.Unbind();
 			}
 		}
 	}

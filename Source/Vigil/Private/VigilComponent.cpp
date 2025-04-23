@@ -227,12 +227,82 @@ void UVigilComponent::EndTargetingRequests(const FGameplayTag& PresetTag, bool b
 	}
 }
 
-void UVigilComponent::RequestResyncVigil(EVigilNetSyncType SyncType)
+bool UVigilComponent::RequestVigilNetSync(UObject* Caller, FOnVigilNetSyncCompleted Delegate,
+	EVigilNetSyncType SyncType)
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::RequestResyncVigil);
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::RequestVigilWaitNetSync);
 	
-	if (OnVigilNetSync.IsBound())
+	if (IsValid(Caller) && ensure(Delegate.IsBound()) && OnVigilSyncRequested.IsBound())
 	{
-		OnVigilNetSync.Broadcast(SyncType);
+		FVigilNetSyncDelegateData& CallerData = NetSyncDelegateMap.FindOrAdd(FObjectKey(Caller));
+		if (!CallerData.ObjectClass.IsValid())
+		{
+			CallerData.ObjectClass = Caller->GetClass();
+		}
+
+		const TSharedRef<FVigilNetSyncDelegateHandler> RegisteredDelegate = MakeShared<FVigilNetSyncDelegateHandler>(MoveTemp(Delegate));
+		CallerData.RegisteredDelegates.Add(RegisteredDelegate);
+		
+		OnVigilSyncRequested.Execute(SyncType);
+		
+		return true;
 	}
+
+	return false;
+}
+
+bool UVigilComponent::K2_RequestVigilNetSync(UObject* Caller, FOnVigilNetSyncCompletedBP Delegate, EVigilNetSyncType SyncType)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::K2_RequestVigilWaitNetSync);
+	
+	if (IsValid(Caller) && ensure(Delegate.IsBound()) && OnVigilSyncRequested.IsBound())
+	{
+		FVigilNetSyncDelegateData& CallerData = NetSyncDelegateMap.FindOrAdd(FObjectKey(Caller));
+		if (!CallerData.ObjectClass.IsValid())
+		{
+			CallerData.ObjectClass = Caller->GetClass();
+		}
+
+		const TSharedRef<FVigilNetSyncDelegateHandler> RegisteredDelegate = MakeShared<FVigilNetSyncDelegateHandler>(MoveTemp(Delegate));
+		CallerData.RegisteredDelegates.Add(RegisteredDelegate);
+
+		OnVigilSyncRequested.Execute(SyncType);
+		
+		return true;
+	}
+
+	return false;
+}
+
+void UVigilComponent::OnNetSyncCallback()
+{
+	// Cache callers because the map can change during iteration
+	TArray<UObject*> Callers;
+	for (TPair<FObjectKey, FVigilNetSyncDelegateData>& Caller : NetSyncDelegateMap)
+	{
+		Callers.Add(Caller.Key.ResolveObjectPtr());
+	}
+
+	UE_LOG(LogVigil, Verbose, TEXT("%s VigilComponent::OnNetSyncCallback: Callers: %d"), *GetRoleString(), Callers.Num());
+
+	for (UObject*& Caller : Callers)
+	{
+		if (FVigilNetSyncDelegateData* CallerData = NetSyncDelegateMap.Find(FObjectKey(Caller)))
+		{
+			for (const TSharedRef<FVigilNetSyncDelegateHandler>& RegisteredDelegate : CallerData->RegisteredDelegates)
+			{
+				UE_LOG(LogVigil, Verbose, TEXT("%s VigilComponent::OnNetSyncCallback: Caller: %s"), *GetRoleString(), *GetNameSafe(Caller));
+				RegisteredDelegate->Execute();
+			}
+		}
+	}
+}
+
+FString UVigilComponent::GetRoleString() const
+{
+	if (IsValid(GetOwner()))
+	{
+		return GetOwner()->HasAuthority() ? TEXT("[ Auth ]") : TEXT("[ Client ]");
+	}
+	return "";
 }

@@ -58,5 +58,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.1.0
+* Net prediction Workflow [see Wiki]()
+* Add `FindVigilComponentForActor` to save a BP cast
+
 ### 1.0.0
 * Initial Release

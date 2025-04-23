@@ -42,6 +42,7 @@ public:
 
 	void WaitForVigil(float Delay, const TOptional<FString>& Reason = {}, const TOptional<FString>& VeryVerboseReason = {});
 	void RequestVigil();
+	void OnVigilCompleteSync(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag);
 	void OnVigilComplete(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag);
 
 	/** Broadcast from VigilComponent */
@@ -64,6 +65,9 @@ protected:
 	/** Tracked to prevent premature GC and allow ending during OnDestroy */
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UVigilNetSyncTask>> SyncTasks;
+
+	/** Delayed callback until we get the next targets */
+	EVigilNetSyncPendingState PendingNetSync = EVigilNetSyncPendingState::None;
 
 	ENetMode GetOwnerNetMode() const;
 	FString GetRoleString() const;

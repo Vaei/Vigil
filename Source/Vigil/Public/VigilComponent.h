@@ -8,6 +8,7 @@
 #include "VigilTypes.h"
 #include "Components/ActorComponent.h"
 #include "TargetingSystem/TargetingPreset.h"
+#include "UObject/ObjectKey.h"
 #include "VigilComponent.generated.h"
 
 
@@ -86,13 +87,15 @@ public:
 	 */
 	FOnRequestVigil OnRequestVigil;
 
-	/** Request Vigil to re-sync */
-	FOnVigilSync OnVigilNetSync;
+	/**
+	 * VigilScanTask binds to this to be notified of when wait net sync is requested
+	 */
+	FOnVigilSyncRequested OnVigilSyncRequested;
 
-	/** Callback for when RequestResyncVigil() completes */
-	UPROPERTY(BlueprintAssignable, Category=Vigil)
-	FOnVigilSyncCompleted OnVigilNetSyncCompleted;
-
+protected:
+	/** Objects that were registered as awaiting net sync callback */
+	TMap<FObjectKey, FVigilNetSyncDelegateData> NetSyncDelegateMap;
+	
 protected:
 	/** Last results of Vigil Focusing update, these are the current focus targets */
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category=Vigil)
@@ -181,12 +184,33 @@ public:
 	}
 
 	/**
-	 * Call to end all targeting requests, then perform a WaitNetSync, and finally resume targeting
-	 * Because Vigil exists perpetually and runs on timers, synchronization is never guaranteed
-	 * You may want to use this before anything important, and bind to OnVigilReSync to know when it's done
+	 * Make a request for Vigil to run a WaitNetSync
+	 * Vigil will clear all targeting requests, run the WaitNetSync, then perform an immediate synchronous request to
+	 * maintain the prediction window. When you receive the callback, the targets will be ready, if available.
 	 *
-	 * If Vigil ability is LocalOnly then calls from this function will be ignored completely by Vigil
+	 * Use this from a LocalPredicted ability prior to running your ability logic when predicted focus is required.
+	 * 
+	 * If Vigil ability is LocalOnly then calls from this function will be ignored completely by Vigil and you will receive no callback.
 	 */
-	UFUNCTION(BlueprintCallable, Category=Vigil)
-	void RequestResyncVigil(EVigilNetSyncType SyncType = EVigilNetSyncType::OnlyServerWait);
+	bool RequestVigilNetSync(UObject* Caller, FOnVigilNetSyncCompleted Delegate,
+		EVigilNetSyncType SyncType = EVigilNetSyncType::OnlyServerWait);
+
+	/**
+	 * Make a request for Vigil to run a WaitNetSync
+	 * Vigil will clear all targeting requests, run the WaitNetSync, then perform an immediate synchronous request to
+	 * maintain the prediction window. When you receive the callback, the targets will be ready, if available.
+	 *
+	 * Use this from a LocalPredicted ability prior to running your ability logic when predicted focus is required.
+	 * 
+	 * If Vigil ability is LocalOnly then calls from this function will be ignored completely by Vigil and you will receive no callback.
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DefaultToSelf="Caller", HidePin="Caller", AdvancedDisplay="SyncType", DisplayName="Request Vigil Wait Net Sync", Keywords="wait net sync"))
+	bool K2_RequestVigilNetSync(UObject* Caller, FOnVigilNetSyncCompletedBP Delegate,
+		EVigilNetSyncType SyncType = EVigilNetSyncType::OnlyServerWait);
+
+	/** Vigil Scan Task calls this when it completes the net sync and has performed a synchronous targeting update */
+	void OnNetSyncCallback();
+
+protected:
+	FString GetRoleString() const;
 };
