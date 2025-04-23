@@ -6,6 +6,12 @@
 > <br>With optional Net-Prediction
 > <br>And its **FREE!**
 
+> [!NOTE]
+> Vigil determines what the player is looking at
+> <br>What they want to interact with
+> <br>Which enemy they want to lock onto.
+> <br>Which ally they want to auto-target with their healing spell
+
 > [!WARNING]
 > Use `git clone` instead of downloading as a zip, or you will not receive content
 > <br>Install this as a project plugin, not an engine plugin
@@ -20,10 +26,6 @@
 > <br>There are many non-standard setups that have not been fully tested
 > <br>Vigil has not been tested at scale in production
 > <br>Vigil's net prediction has not been widely tested, esp. the workflow -- feedback wanted
-
-## What is Vigil?
-
-Vigil determines what the player is looking at. What they want to interact with. Which ally they want to auto-target with their healing spell. Which enemy they want to lock onto.
 
 ## Watch Me
 
