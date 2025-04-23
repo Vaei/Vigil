@@ -33,9 +33,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Vigil Filter")
 	EVigilTargetLocationSource LocationSource;
 
-	// UPROPERTY(EditAnywhere, Category="Vigil Filter")
-	// EVigilTargetRotationSource_AOE RotationSource;
-
 	/** The default source location offset used by GetSourceOffset */
 	UPROPERTY(EditAnywhere, Category="Vigil Filter")
 	FVector DefaultSourceLocationOffset = FVector::ZeroVector;
@@ -43,17 +40,14 @@ protected:
 	/** Should we offset based on world or relative Source object transform? */
 	UPROPERTY(EditAnywhere, Category="Vigil Filter")
 	uint8 bUseRelativeLocationOffset : 1;
-	
-	// /** The default source rotation offset used by GetSourceOffset */
-	// UPROPERTY(EditAnywhere, Category="Vigil Filter")
-	// FRotator DefaultSourceRotationOffset = FRotator::ZeroRotator;
 
 	/** Where to trace to determine if we can locate the target */
 	UPROPERTY(EditAnywhere, Category="Vigil Filter")
 	EVigilTargetLocationSource_LOS TargetLocationSource;
 
+	/** Ignore targets with these included mobility types */
 	UPROPERTY(EditAnywhere, Category="Vigil Filter")
-	bool bIgnoreMovableTargets;
+	TArray<TEnumAsByte<EComponentMobility::Type>> IgnoreTargetMobility;
 	
 protected:
 	/** Indicates the trace should ignore the source actor */

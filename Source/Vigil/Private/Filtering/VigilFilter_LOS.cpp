@@ -35,7 +35,7 @@ UVigilFilter_LOS::UVigilFilter_LOS(const FObjectInitializer& ObjectInitializer)
 
 	bIgnoreSourceActor = true;
 	bIgnoreInstigatorActor = false;
-	bIgnoreMovableTargets = true;
+	IgnoreTargetMobility.Add(EComponentMobility::Movable);
 
 	bUseRelativeLocationOffset = true;
 }
@@ -47,7 +47,7 @@ bool UVigilFilter_LOS::ShouldFilterTarget(const FTargetingRequestHandle& Targeti
 	if (World && TargetingHandle.IsValid())
 	{
 		const AActor* TargetActor = TargetData.HitResult.GetActor();
-		if (!TargetActor)
+		if (!TargetActor || !TargetActor->GetRootComponent())
 		{
 			return true;
 		}
@@ -55,12 +55,13 @@ bool UVigilFilter_LOS::ShouldFilterTarget(const FTargetingRequestHandle& Targeti
 		FCollisionQueryParams TraceParams(TEXT("UVigilTargetingFilterTask_LOS"), SCENE_QUERY_STAT_ONLY(UVigilTargetingFilterTask_LOS), false);
 		InitCollisionParams(TargetingHandle, TraceParams);
 
-		const bool bMovableTarget = bIgnoreMovableTargets && TargetActor->IsRootComponentMovable();
-		if (bMovableTarget)
+		// Conditionally ignore based on target mobility
+		const bool bIgnoreMobility = IgnoreTargetMobility.Contains(TargetActor->GetRootComponent()->Mobility);
+		if (bIgnoreMobility)
 		{
 			TraceParams.AddIgnoredActor(TargetActor);
 		}
-
+		
 		FVector TargetLocation = TargetActor->GetActorLocation();
 		if (TargetLocationSource == EVigilTargetLocationSource_LOS::BoundsOrigin)
 		{
@@ -143,8 +144,8 @@ bool UVigilFilter_LOS::ShouldFilterTarget(const FTargetingRequestHandle& Targeti
 		// Note -- we filter out if there is no LOS
 		// So we return true if we don't have LOS
 		
-		// If our target is movable, and we hit nothing, then we have line of sight
-		if (bMovableTarget)
+		// If our target is ignored by mobility (generally, movable), and we hit nothing, then we have line of sight
+		if (bIgnoreMobility)
 		{
 			// We hit something, so we don't have LOS, we need to filter it
 			return Hit.bBlockingHit;
