@@ -21,6 +21,10 @@
 > <br>Vigil has not been tested at scale in production
 > <br>Vigil's net prediction has not been widely tested, esp. the workflow -- feedback wanted
 
+## What is Vigil?
+
+In the simplest terms possible, Vigil can determine what the player is looking at -- what they want to interact with, who they want to auto-target with their healing spell, which enemy they want to lock onto.
+
 ## Watch Me
 
 > [!TIP]
