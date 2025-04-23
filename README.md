@@ -9,7 +9,7 @@
 > [!WARNING]
 > Use `git clone` instead of downloading as a zip, or you will not receive content
 > <br>Install this as a project plugin, not an engine plugin
-> <br>The content is not necessary, reproducing it is very simple
+> <br>The content is not necessary, [reproducing it is very simple](https://github.com/Vaei/Vigil/wiki/Content-Creation)
 
 > [!TIP]
 > Suitable for both singleplayer and multiplayer games
@@ -20,6 +20,15 @@
 > <br>There are many non-standard setups that have not been fully tested
 > <br>Vigil has not been tested at scale in production
 > <br>Vigil's net prediction has not been widely tested, esp. the workflow -- feedback wanted
+
+## Watch Me
+
+> [!TIP]
+> [Showcase Video](TODO)
+
+## How to Use
+> [!IMPORTANT]
+> [Read the Wiki to Learn How to use Vigil](https://github.com/Vaei/Vigil/wiki/How-to-Use)
 
 ## Features
 
