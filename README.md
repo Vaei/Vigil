@@ -7,7 +7,7 @@
 > <br>And its **FREE!**
 
 > [!NOTE]
-> Vigil determines what the player is looking at
+> **Vigil determines what the player is looking at**
 > <br>What they want to interact with
 > <br>Which enemy they want to lock onto.
 > <br>Which ally they want to auto-target with their healing spell
