@@ -1,8 +1,8 @@
 # Vigil <img align="right" width=128, height=128 src="https://github.com/Vaei/Vigil/blob/main/Resources/Icon128.png">
 
 > [!IMPORTANT]
-> **Gameplay Focus System**
-> <br>Robust Data-Driven Asynchronous Focus Targeting
+> **Focus Targeting System**
+> <br>Robust, Data-Driven, Asynchronous
 > <br>With optional Net-Prediction
 > <br>And its **FREE!**
 

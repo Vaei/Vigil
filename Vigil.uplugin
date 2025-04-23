@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0.0",
 	"FriendlyName": "Vigil",
-	"Description": "Gameplay Focus - robust, data-driven, asynchronous, with optional network prediction.",
+	"Description": "Focus Targeting - robust, data-driven, asynchronous, with optional network prediction.",
 	"Category": "Gameplay",
 	"CreatedBy": "Jared Taylor (Vaei)",
 	"CreatedByURL": "https://vaei.github.io/",
