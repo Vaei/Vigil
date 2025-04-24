@@ -30,7 +30,7 @@
 ## Watch Me
 
 > [!TIP]
-> [Showcase Video](TODO)
+> [Showcase Video](https://youtu.be/fldDauZwYT8)
 
 ## How to Use
 > [!IMPORTANT]
