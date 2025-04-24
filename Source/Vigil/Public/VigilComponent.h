@@ -25,14 +25,14 @@ class VIGIL_API UVigilComponent : public UActorComponent
 
 public:
 	/** Targeting presets used unless overriding GetTargetingPresets() */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Vigil)
 	TMap<FGameplayTag, UTargetingPreset*> DefaultTargetingPresets = { { FVigilTags::Vigil_Focus, nullptr } };
 
 	/**
 	 * Determines which actor to use as the source for the targeting request
 	 * Unless overridden in GetTargetingSource()
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Vigil)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Vigil)
 	EVigilTargetingSource DefaultTargetingSource = EVigilTargetingSource::Pawn;
 
 	/** If true, each Vigil request will update targeting presets before proceeding */

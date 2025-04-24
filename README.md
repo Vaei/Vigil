@@ -66,6 +66,7 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ### 1.2.1
 * Exposed ErrorWaitDelay on task node for advanced control and optimization
+* Corrected UPROPERTY specificers
 
 ### 1.2.0
 * Removed dependency on PlayerController
