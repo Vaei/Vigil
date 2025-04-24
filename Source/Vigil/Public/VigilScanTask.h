@@ -8,9 +8,8 @@
 #include "VigilScanTask.generated.h"
 
 class UVigilNetSyncTask;
-class UAbilityTask_NetworkSyncPoint;
-struct FTargetingRequestHandle;
 class UVigilComponent;
+struct FTargetingRequestHandle;
 
 /**
  * Vigil's passive perpetual task that scans for focus targets
@@ -34,13 +33,14 @@ public:
 	/**
 	 * Vigil's passive perpetual task that scans for focus targets
 	 * @param OwningAbility The ability that owns this task
+	 * @param ErrorWaitDelay Delay before we attempt any requests after encountering an error
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE", DisplayName="Vigil Scan"))
-	static UVigilScanTask* VigilScan(UGameplayAbility* OwningAbility);
+	static UVigilScanTask* VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay = 0.5f);
 
 	virtual void Activate() override;
 
-	void WaitForVigil(float Delay, const TOptional<FString>& Reason = {}, const TOptional<FString>& VeryVerboseReason = {});
+	void WaitForVigil(float InDelay, const TOptional<FString>& Reason = {}, const TOptional<FString>& VeryVerboseReason = {});
 	void RequestVigil();
 	void OnVigilCompleteSync(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag);
 	void OnVigilComplete(FTargetingRequestHandle TargetingHandle, FGameplayTag FocusTag);
@@ -62,6 +62,9 @@ public:
 	virtual void OnDestroy(bool bInOwnerFinished) override;
 
 protected:
+	UPROPERTY()
+	float Delay = 0.5f;
+	
 	/** Tracked to prevent premature GC and allow ending during OnDestroy */
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UVigilNetSyncTask>> SyncTasks;

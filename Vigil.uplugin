@@ -1,7 +1,7 @@
 ﻿{
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.2.0",
+	"VersionName": "1.2.1",
 	"FriendlyName": "Vigil",
 	"Description": "Focus Targeting - robust, data-driven, asynchronous, with optional network prediction.",
 	"Category": "Gameplay",

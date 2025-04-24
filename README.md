@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.2.1
+* Exposed ErrorWaitDelay on task node for advanced control and optimization
+
 ### 1.2.0
 * Removed dependency on PlayerController
 	* Allows for use on AIController, however this is untested

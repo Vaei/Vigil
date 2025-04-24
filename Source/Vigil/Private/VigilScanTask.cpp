@@ -9,6 +9,7 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/Pawn.h"
 #include "TargetingSystem/TargetingSubsystem.h"
+#include "TargetingSystem/TargetingPreset.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "Engine/GameInstance.h"
@@ -35,9 +36,10 @@ namespace FVigilCVars
 #endif
 }
 
-UVigilScanTask* UVigilScanTask::VigilScan(UGameplayAbility* OwningAbility)
+UVigilScanTask* UVigilScanTask::VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay)
 {
 	UVigilScanTask* MyObj = NewAbilityTask<UVigilScanTask>(OwningAbility);
+	MyObj->Delay = ErrorWaitDelay;
 	return MyObj;
 }
 
@@ -51,7 +53,7 @@ void UVigilScanTask::Activate()
 	RequestVigil();
 }
 
-void UVigilScanTask::WaitForVigil(float Delay, const TOptional<FString>& Reason, const TOptional<FString>& VeryVerboseReason)
+void UVigilScanTask::WaitForVigil(float InDelay, const TOptional<FString>& Reason, const TOptional<FString>& VeryVerboseReason)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilScanTask::WaitForVigil);
 	
@@ -64,7 +66,7 @@ void UVigilScanTask::WaitForVigil(float Delay, const TOptional<FString>& Reason,
 	WaitReason = Reason;
 	VeryVerboseWaitReason = VeryVerboseReason;
 
-	GetWorld()->GetTimerManager().SetTimer(VigilWaitTimer, this, &UVigilScanTask::RequestVigil, Delay, false);
+	GetWorld()->GetTimerManager().SetTimer(VigilWaitTimer, this, &UVigilScanTask::RequestVigil, InDelay, false);
 }
 
 void UVigilScanTask::RequestVigil()
@@ -117,7 +119,7 @@ void UVigilScanTask::RequestVigil()
 		if (UNLIKELY(!Controller))
 		{
 			UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid controller. [SYSTEM WAIT]"), *GetRoleString());
-			WaitForVigil(0.5f, {"Invalid Controller"});
+			WaitForVigil(Delay, {"Invalid Controller"});
 			return;
 		}
 
@@ -194,7 +196,7 @@ void UVigilScanTask::RequestVigil()
 	if (!GetWorld() || !GetWorld()->GetGameInstance())
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid world or game instance. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f);
+		WaitForVigil(Delay);
 		return;
 	}
 
@@ -203,7 +205,7 @@ void UVigilScanTask::RequestVigil()
 	if (!TargetSubsystem)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid TargetingSubsystem. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f, {"Invalid TargetingSubsystem"});
+		WaitForVigil(Delay, {"Invalid TargetingSubsystem"});
 		return;
 	}
 
@@ -211,7 +213,7 @@ void UVigilScanTask::RequestVigil()
 	if (!TargetingSource)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Invalid TargetingSource. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f, {"Invalid TargetingSource"});
+		WaitForVigil(Delay, {"Invalid TargetingSource"});
 		return;
 	}
 	
@@ -238,7 +240,7 @@ void UVigilScanTask::RequestVigil()
 	if (TargetingPresets.Num() == 0)
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: No targeting presets. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f, {}, {"No TargetingPresets"});
+		WaitForVigil(Delay, {}, {"No TargetingPresets"});
 		return;
 	}
 
@@ -262,7 +264,7 @@ void UVigilScanTask::RequestVigil()
 
 #if WITH_EDITOR
 		// Debug the frame where the call was made vs completed
-		const auto DebugFrame = GFrameCounter;
+		const uint64 DebugFrame = GFrameCounter;
 #endif
 		
 		// If we just net synced then perform the request sync (immediate) so the prediction window remains valid
@@ -286,7 +288,7 @@ void UVigilScanTask::RequestVigil()
 	{
 		// Failed to start any async targeting requests
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::RequestVigil: Failed to start async targeting requests - TargetingTaskSet(s) are empty or no Preset assigned! Bad setup! [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f, {}, {"TargetingTaskSet(s) are empty! Bad setup!"});
+		WaitForVigil(Delay, {}, {"TargetingTaskSet(s) are empty! Bad setup!"});
 		return;
 	}
 
@@ -321,17 +323,15 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 
 #if WITH_EDITOR
 	// Debug the frame where the call was made vs completed
-	const auto DebugFrame = GFrameCounter;
+	const uint64 DebugFrame = GFrameCounter;
 #endif
-	
-	const FString RoleStr = Ability->GetCurrentActorInfo()->IsNetAuthority() ? TEXT("Auth") : TEXT("Client");
 	
 	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::OnVigilComplete: %s"), *GetRoleString(), *FocusTag.ToString());
 
 	if (!VC.IsValid())
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid VigilComponent. [SYSTEM WAIT]"), *GetRoleString());
-		WaitForVigil(0.5f, {"Invalid VigilComponent"});
+		WaitForVigil(Delay, {"Invalid VigilComponent"});
 		return;
 	}
 	
@@ -340,7 +340,7 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid world or game instance. [SYSTEM WAIT]"), *GetRoleString());
 		VC->EndAllTargetingRequests();
-		WaitForVigil(0.5f, {}, {"Invalid world or game instance"});
+		WaitForVigil(Delay, {}, {"Invalid world or game instance"});
 		return;
 	}
 
@@ -350,7 +350,7 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	{
 		UE_LOG(LogVigil, Verbose, TEXT("%s VigilScanTask::OnVigilComplete: Invalid TargetingSubsystem. [SYSTEM WAIT]"), *GetRoleString());
 		VC->EndAllTargetingRequests();
-		WaitForVigil(0.5f, {}, {"Invalid TargetingSubsystem"});
+		WaitForVigil(Delay, {}, {"Invalid TargetingSubsystem"});
 		return;
 	}
 
