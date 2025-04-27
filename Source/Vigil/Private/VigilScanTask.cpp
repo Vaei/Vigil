@@ -259,14 +259,13 @@ void UVigilScanTask::RequestVigil()
 		FTargetingRequestHandle& Handle = VC->TargetingRequests.FindOrAdd(Tag);
 		Handle = TargetSubsystem->MakeTargetRequestHandle(Preset, FTargetingSourceContext {TargetingSource});
 
-		FTargetingAsyncTaskData& AsyncTaskData = FTargetingAsyncTaskData::FindOrAdd(Handle);
-		AsyncTaskData.bReleaseOnCompletion = true;
-
 #if WITH_EDITOR
 		// Debug the frame where the call was made vs completed
 		const uint64 DebugFrame = GFrameCounter;
 #endif
 		
+		bAwaitingCallback = true;
+
 		// If we just net synced then perform the request sync (immediate) so the prediction window remains valid
 		if (PendingNetSync == EVigilNetSyncPendingState::Pending)
 		{
@@ -275,11 +274,12 @@ void UVigilScanTask::RequestVigil()
 		}
 		else
 		{
+			FTargetingAsyncTaskData& AsyncTaskData = FTargetingAsyncTaskData::FindOrAdd(Handle);
+			AsyncTaskData.bReleaseOnCompletion = true;
+
 			TargetSubsystem->StartAsyncTargetingRequestWithHandle(Handle,
 				FTargetingRequestDelegate::CreateUObject(this, &ThisClass::OnVigilComplete, Tag));
 		}
-		
-		bAwaitingCallback = true;
 		
 		UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::RequestVigil: Start async targeting for TargetingPresets[%s]: %s"), *GetRoleString(), *Tag.ToString(), *GetNameSafe(Preset));
 	}
