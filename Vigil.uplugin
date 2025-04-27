@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.2.1",
 	"FriendlyName": "Vigil",
-	"Description": "Focus Targeting - robust, data-driven, asynchronous, with optional network prediction.",
+	"Description": "Focus Targeting - robust, data-driven, asynchronous, with optional network prediction. Pair me with Grasp and Doors for a full experience.",
 	"Category": "Gameplay",
 	"CreatedBy": "Jared Taylor (Vaei)",
 	"CreatedByURL": "https://vaei.github.io/",
