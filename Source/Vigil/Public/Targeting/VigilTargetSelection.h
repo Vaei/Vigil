@@ -59,6 +59,10 @@ protected:
 	FRotator DefaultSourceRotationOffset = FRotator::ZeroRotator;
 
 protected:
+	/** If true can successfully overlap multiple components on the same actor */
+	UPROPERTY(EditAnywhere, Category="Grasp Selection")
+	bool bTraceMultipleComponentsPerActor;
+	
 	/** When enabled, the trace will be performed against complex collision. */
 	UPROPERTY(EditAnywhere, Category="Vigil Selection")
 	uint8 bTraceComplex : 1 = false;
