@@ -315,74 +315,61 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 					continue;
 				}}
 
-			bool bAddResult = true;
-			for (const FTargetingDefaultResultData& ResultData : TargetingResults.TargetResults)
+			NumValidResults++;
+				
+			FTargetingDefaultResultData* ResultData = new(TargetingResults.TargetResults) FTargetingDefaultResultData();
+			ResultData->HitResult.HitObjectHandle = OverlapResult.OverlapObjectHandle;
+			ResultData->HitResult.Component = OverlapResult.GetComponent();
+			ResultData->HitResult.ImpactPoint = OverlapResult.GetComponent()->GetComponentLocation();
+			ResultData->HitResult.Location = OverlapResult.GetActor()->GetActorLocation();
+			ResultData->HitResult.bBlockingHit = OverlapResult.bBlockingHit;
+			ResultData->HitResult.TraceStart = SourceLocation;
+			ResultData->HitResult.Item = OverlapResult.ItemIndex;
+			ResultData->HitResult.Distance = FVector::Distance(OverlapResult.GetActor()->GetActorLocation(), SourceLocation);
+
+			// Store the normal based on where we are looking based on source rotation
+			ResultData->HitResult.Normal = SourceRotation.Vector();
+
+			// Store the trace radius into Time based on the shape type
+			switch (ShapeType)
 			{
-				if (ResultData.HitResult.GetActor() == OverlapResult.GetActor())
-				{
-					bAddResult = false;
-					break;
-				}
+			case EVigilTargetingShape::Cone:
+				ResultData->HitResult.Time = FMath::Max(GetConeShape().AngleHeight, GetConeShape().AngleWidth);
+				break;
+			case EVigilTargetingShape::Box:
+			case EVigilTargetingShape::Cylinder:
+				ResultData->HitResult.Time = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
+				break;
+			case EVigilTargetingShape::Sphere:
+				ResultData->HitResult.Time = Radius.GetValue();
+				break;
+			case EVigilTargetingShape::Capsule:
+				ResultData->HitResult.Time = HalfHeight.GetValue();
+				break;
+			case EVigilTargetingShape::SourceComponent:
+				ResultData->HitResult.Time = Radius.GetValue();
+				break;
 			}
 
-			if (bAddResult)
+			// Store the max distance into PenetrationDepth based on the shape type
+			switch (ShapeType)
 			{
-				NumValidResults++;
-				
-				FTargetingDefaultResultData* ResultData = new(TargetingResults.TargetResults) FTargetingDefaultResultData();
-				ResultData->HitResult.HitObjectHandle = OverlapResult.OverlapObjectHandle;
-				ResultData->HitResult.Component = OverlapResult.GetComponent();
-				ResultData->HitResult.ImpactPoint = OverlapResult.GetActor()->GetActorLocation();
-				ResultData->HitResult.Location = OverlapResult.GetActor()->GetActorLocation();
-				ResultData->HitResult.bBlockingHit = OverlapResult.bBlockingHit;
-				ResultData->HitResult.TraceStart = SourceLocation;
-				ResultData->HitResult.Item = OverlapResult.ItemIndex;
-				ResultData->HitResult.Distance = FVector::Distance(OverlapResult.GetActor()->GetActorLocation(), SourceLocation);
-
-				// Store the normal based on where we are looking based on source rotation
-				ResultData->HitResult.Normal = SourceRotation.Vector();
-
-				// Store the trace radius into Time based on the shape type
-				switch (ShapeType)
-				{
-				case EVigilTargetingShape::Cone:
-					ResultData->HitResult.Time = FMath::Max(GetConeShape().AngleHeight, GetConeShape().AngleWidth);
-					break;
-				case EVigilTargetingShape::Box:
-				case EVigilTargetingShape::Cylinder:
-					ResultData->HitResult.Time = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
-					break;
-				case EVigilTargetingShape::Sphere:
-					ResultData->HitResult.Time = Radius.GetValue();
-					break;
-				case EVigilTargetingShape::Capsule:
-					ResultData->HitResult.Time = HalfHeight.GetValue();
-					break;
-				case EVigilTargetingShape::SourceComponent:
-					ResultData->HitResult.Time = Radius.GetValue();
-					break;
-				}
-
-				// Store the max distance into PenetrationDepth based on the shape type
-				switch (ShapeType)
-				{
-				case EVigilTargetingShape::Cone:
-					ResultData->HitResult.PenetrationDepth = GetConeShape().Length;
-					break;
-				case EVigilTargetingShape::Box:
-				case EVigilTargetingShape::Cylinder:
-					ResultData->HitResult.PenetrationDepth = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
-					break;
-				case EVigilTargetingShape::Sphere:
-					ResultData->HitResult.PenetrationDepth = Radius.GetValue();
-					break;
-				case EVigilTargetingShape::Capsule:
-					ResultData->HitResult.PenetrationDepth = HalfHeight.GetValue();
-					break;
-				case EVigilTargetingShape::SourceComponent:
-					ResultData->HitResult.PenetrationDepth = Radius.GetValue();
-					break;
-				}
+			case EVigilTargetingShape::Cone:
+				ResultData->HitResult.PenetrationDepth = GetConeShape().Length;
+				break;
+			case EVigilTargetingShape::Box:
+			case EVigilTargetingShape::Cylinder:
+				ResultData->HitResult.PenetrationDepth = FMath::Max3(HalfExtent.X, HalfExtent.Y, HalfExtent.Z);
+				break;
+			case EVigilTargetingShape::Sphere:
+				ResultData->HitResult.PenetrationDepth = Radius.GetValue();
+				break;
+			case EVigilTargetingShape::Capsule:
+				ResultData->HitResult.PenetrationDepth = HalfHeight.GetValue();
+				break;
+			case EVigilTargetingShape::SourceComponent:
+				ResultData->HitResult.PenetrationDepth = Radius.GetValue();
+				break;
 			}
 		}
 

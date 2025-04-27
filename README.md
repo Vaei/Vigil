@@ -64,6 +64,13 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.2.2
+* Fixed gating target results by unique actor, now multiple components on the same actor are valid focuses
+* HitResult ImpactPoint now outputs the component location instead of actor
+	* Debug drawing uses this, so it will correctly show the hit component location instead of actor now
+* Fix out of order bAwaitingCallback flag and asynctaskdata being added for immediate trace post net sync, though it wasn't causing any issue
+
+
 ### 1.2.1
 * Exposed ErrorWaitDelay on task node for advanced control and optimization
 * Corrected UPROPERTY specificers
