@@ -18,6 +18,11 @@
 			"Name": "Vigil",
 			"Type": "Runtime",
 			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "VigilEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PreDefault"
 		}
 	],
 	"Plugins": [
