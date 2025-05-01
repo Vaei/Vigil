@@ -64,6 +64,10 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.2.3
+* Mark scan task as neither simulated nor ticking
+* Mark Vigil category as Important to sort to top of details panel
+
 ### 1.2.2
 * Fixed gating target results by unique actor, now multiple components on the same actor are valid focuses
 * HitResult ImpactPoint now outputs the component location instead of actor

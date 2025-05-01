@@ -36,6 +36,13 @@ namespace FVigilCVars
 #endif
 }
 
+UVigilScanTask::UVigilScanTask(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bSimulatedTask = false;
+	bTickingTask = false;
+}
+
 UVigilScanTask* UVigilScanTask::VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay)
 {
 	UVigilScanTask* MyObj = NewAbilityTask<UVigilScanTask>(OwningAbility);

@@ -30,6 +30,8 @@ protected:
 	TOptional<FString> VeryVerboseWaitReason;
 	
 public:
+	UVigilScanTask(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
 	/**
 	 * Vigil's passive perpetual task that scans for focus targets
 	 * @param OwningAbility The ability that owns this task
