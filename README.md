@@ -14,6 +14,7 @@
 
 > [!WARNING]
 > Use `git clone` instead of downloading as a zip, or you will not receive content
+> <br>[Or download the pre-compiled binaries here](https://github.com/Vaei/Vigil/wiki/How-to-Use)
 > <br>Install this as a project plugin, not an engine plugin
 > <br>The content is not necessary, [reproducing it is very simple](https://github.com/Vaei/Vigil/wiki/Content-Creation)
 
