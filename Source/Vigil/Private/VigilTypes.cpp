@@ -5,6 +5,8 @@
 
 #include "ScalableFloat.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTypes)
+
 DEFINE_LOG_CATEGORY(LogVigil);
 
 bool FVigilConeShape::IsPointWithinCone(const FVector& Point, const FVector& ConeOrigin,
