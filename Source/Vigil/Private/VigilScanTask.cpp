@@ -43,10 +43,11 @@ UVigilScanTask::UVigilScanTask(const FObjectInitializer& ObjectInitializer)
 	bTickingTask = false;
 }
 
-UVigilScanTask* UVigilScanTask::VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay)
+UVigilScanTask* UVigilScanTask::VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay, float FailsafeDelay)
 {
 	UVigilScanTask* MyObj = NewAbilityTask<UVigilScanTask>(OwningAbility);
 	MyObj->Delay = ErrorWaitDelay;
+	MyObj->FailsafeDelay = FailsafeDelay;
 	return MyObj;
 }
 
@@ -389,6 +390,19 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 		// Request the next Vigil
 		RequestVigil();
 	}
+
+	// Fail-safe timer to ensure we don't hang indefinitely -- this occurs due to an engine bug where the TargetingSubsystem
+	// loses all of its requests when another player joins (so far confirmed for running under one process in PIE only)
+	auto OnFailsafeTimer = [this]
+	{
+		if (VC->TargetingRequests.Num() > 0)
+		{
+			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask hung with %d targeting requests. Retrying..."), *GetRoleString(), VC->TargetingRequests.Num());
+			VC->EndAllTargetingRequests();
+			RequestVigil();
+		}
+	};
+	GetWorld()->GetTimerManager().SetTimer(FailsafeTimer, OnFailsafeTimer, FailsafeDelay, false);
 }
 
 void UVigilScanTask::OnPauseVigil(bool bPaused)

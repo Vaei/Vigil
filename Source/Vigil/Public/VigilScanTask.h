@@ -20,7 +20,11 @@ class VIGIL_API UVigilScanTask : public UAbilityTask
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	FTimerHandle VigilWaitTimer;
+
+	UPROPERTY()
+	FTimerHandle FailsafeTimer;
 
 protected:
 	UPROPERTY()
@@ -36,9 +40,10 @@ public:
 	 * Vigil's passive perpetual task that scans for focus targets
 	 * @param OwningAbility The ability that owns this task
 	 * @param ErrorWaitDelay Delay before we attempt any requests after encountering an error
+	 * @param FailsafeDelay Delay before we request a new target if we don't get one
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE", DisplayName="Vigil Scan"))
-	static UVigilScanTask* VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay = 0.5f);
+	static UVigilScanTask* VigilScan(UGameplayAbility* OwningAbility, float ErrorWaitDelay = 0.5f, float FailsafeDelay = 1.f);
 
 	virtual void Activate() override;
 
@@ -66,6 +71,9 @@ public:
 protected:
 	UPROPERTY()
 	float Delay = 0.5f;
+
+	UPROPERTY()
+	float FailsafeDelay = 1.f;
 	
 	/** Tracked to prevent premature GC and allow ending during OnDestroy */
 	UPROPERTY(Transient)

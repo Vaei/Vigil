@@ -65,6 +65,11 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.3.0
+* Due to Engine bug where Targeting Subsystem loses all requests when another client joins, a failsafe has been added
+* Fixed SourceActor Controller not finding PlayerController in `UVigilTargetingStatics::GetSourceLocation`
+* Debug logging now identifies which client is logging
+
 ### 1.2.3
 * Mark scan task as neither simulated nor ticking
 * Mark Vigil category as Important to sort to top of details panel
