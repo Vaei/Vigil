@@ -25,14 +25,27 @@ FVector UVigilTargetingStatics::GetSourceLocation(const FTargetingRequestHandle&
 			case EVigilTargetLocationSource::Actor: return SourceContext->SourceActor->GetActorLocation();
 			case EVigilTargetLocationSource::ViewLocation:
 				{
-					if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
+					const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor);
+					if (!Pawn)
+					{
+						const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor);
+						Pawn = PC ? PC->GetPawn() : nullptr;
+					}
+					if (Pawn)
 					{
 						return Pawn->GetPawnViewLocation();
 					}
 				}
 			case EVigilTargetLocationSource::Camera:
 				{
-					if (const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor->GetOwner()))
+					const APlayerController* PC = Cast<APlayerController>(SourceContext->SourceActor);
+					if (!PC)
+					{
+						const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor);
+						PC = Pawn ? Pawn->GetController<APlayerController>() : nullptr;
+					}
+					
+					if (PC)
 					{
 						if (PC->PlayerCameraManager)
 						{
