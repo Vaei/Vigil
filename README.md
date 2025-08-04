@@ -65,6 +65,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.3.1
+* Replace native ptr with TObjectPtr
+
 ### 1.3.0
 * Due to Engine bug where Targeting Subsystem loses all requests when another client joins, a failsafe has been added
 * Fixed SourceActor Controller not finding PlayerController in `UVigilTargetingStatics::GetSourceLocation`

@@ -242,7 +242,7 @@ void UVigilScanTask::RequestVigil()
 	}
 
 	// Get cached targeting presets
-	const TMap<FGameplayTag, UTargetingPreset*>& TargetingPresets = VC->CurrentTargetingPresets;
+	const TMap<FGameplayTag, TObjectPtr<UTargetingPreset>>& TargetingPresets = VC->CurrentTargetingPresets;
 	UE_LOG(LogVigil, VeryVerbose, TEXT("%s VigilScanTask::RequestVigil: TargetingPresets.Num(): %d"), *GetRoleString(), TargetingPresets.Num());
 
 	if (TargetingPresets.Num() == 0)

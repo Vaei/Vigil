@@ -45,7 +45,7 @@ AActor* UVigilComponent::GetTargetingSource_Implementation() const
 
 TMap<FGameplayTag, UTargetingPreset*> UVigilComponent::GetTargetingPresets_Implementation() const
 {
-	return DefaultTargetingPresets;
+	return ObjectPtrDecay(DefaultTargetingPresets);
 }
 
 void UVigilComponent::BeginPlay()
@@ -59,7 +59,7 @@ void UVigilComponent::BeginPlay()
 	bLastUpdateTargetingPresetsOnPawnChange = bUpdateTargetingPresetsOnPawnChange;
 
 	// Get the targeting presets
-	CurrentTargetingPresets = GetTargetingPresets();
+	CurrentTargetingPresets = ObjectPtrWrap(GetTargetingPresets());
 
 	// Bind the pawn changed event if required
 	UpdatePawnChangedBinding();
@@ -106,8 +106,8 @@ void UVigilComponent::UpdateTargetingPresets()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilComponent::UpdateTargetingPresets);
 	
-	const TMap<FGameplayTag, UTargetingPreset*> LastTargetingPresets = CurrentTargetingPresets;
-	CurrentTargetingPresets = GetTargetingPresets();
+	const TMap<FGameplayTag, TObjectPtr<UTargetingPreset>> LastTargetingPresets = CurrentTargetingPresets;
+	CurrentTargetingPresets = ObjectPtrWrap(GetTargetingPresets());
 
 	// Clear out any targeting presets that are no longer valid
 	for (const auto& Preset : LastTargetingPresets)
