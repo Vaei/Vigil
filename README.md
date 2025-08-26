@@ -65,6 +65,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.3.2
+* Fix `UVigilScanTask::GetOwnerNetMode()` checks
+
 ### 1.3.1
 * Replace native ptr with TObjectPtr
 

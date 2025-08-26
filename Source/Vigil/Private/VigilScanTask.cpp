@@ -531,7 +531,13 @@ void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 
 ENetMode UVigilScanTask::GetOwnerNetMode() const
 {
-	const AActor* const OwnerActorPtr = Ability->GetCurrentActorInfo()->OwnerActor.Get(/*bEvenIfPendingKill=*/ true);
+	if (!IsValid(Ability) || !Ability->GetCurrentActorInfo() || !Ability->GetCurrentActorInfo()->OwnerActor.IsValid())
+	{
+		return NM_MAX;
+	}
+	
+	static constexpr bool bEvenIfPendingKill = false;
+	const AActor* const OwnerActorPtr = Ability->GetCurrentActorInfo()->OwnerActor.Get(bEvenIfPendingKill);
 	return OwnerActorPtr ? OwnerActorPtr->GetNetMode() : NM_MAX;
 }
 
