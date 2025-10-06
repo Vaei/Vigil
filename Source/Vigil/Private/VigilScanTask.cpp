@@ -395,14 +395,17 @@ void UVigilScanTask::OnVigilComplete(FTargetingRequestHandle TargetingHandle, FG
 	// loses all of its requests when another player joins (so far confirmed for running under one process in PIE only)
 	auto OnFailsafeTimer = [this]
 	{
-		if (VC->TargetingRequests.Num() > 0)
+		if (VC.IsValid() && VC->TargetingRequests.Num() > 0)
 		{
 			UE_LOG(LogVigil, Error, TEXT("%s VigilScanTask hung with %d targeting requests. Retrying..."), *GetRoleString(), VC->TargetingRequests.Num());
 			VC->EndAllTargetingRequests();
 			RequestVigil();
 		}
 	};
-	GetWorld()->GetTimerManager().SetTimer(FailsafeTimer, OnFailsafeTimer, FailsafeDelay, false);
+
+	// Weak Lambda is used because OnDestroy isn't called at the correct point in the engine lifecycle after UEngine::Browse (open map)
+	GetWorld()->GetTimerManager().SetTimer(FailsafeTimer, FTimerDelegate::CreateWeakLambda(this, OnFailsafeTimer),
+		FailsafeDelay, false);
 }
 
 void UVigilScanTask::OnPauseVigil(bool bPaused)
