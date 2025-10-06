@@ -65,6 +65,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.3.3
+* Change Failsafe Timer to Weak Lambda because OnDestroy not being called at correct point in lifecycle after UEngine::Browse (`open map`)
+
 ### 1.3.2
 * Fix `UVigilScanTask::GetOwnerNetMode()` checks
 
