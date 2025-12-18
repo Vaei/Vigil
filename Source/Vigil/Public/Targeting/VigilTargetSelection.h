@@ -60,7 +60,7 @@ protected:
 
 protected:
 	/** If true can successfully overlap multiple components on the same actor */
-	UPROPERTY(EditAnywhere, Category="Grasp Selection")
+	UPROPERTY(EditAnywhere, Category="Vigil Selection")
 	bool bTraceMultipleComponentsPerActor;
 	
 	/** When enabled, the trace will be performed against complex collision. */
