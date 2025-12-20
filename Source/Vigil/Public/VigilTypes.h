@@ -83,16 +83,21 @@ struct VIGIL_API FVigilFocusResult
 		: FocusTag(InFocusTag)
 		, HitResult(InHitResult)
 		, Score(InScore)
-	{}
+	{
+		LastFocusActor = HitResult.GetActor();
+	}
 
 	UPROPERTY(BlueprintReadOnly, Category=Vigil)
 	FGameplayTag FocusTag;
 	
 	UPROPERTY(BlueprintReadOnly, Category=Vigil)
 	FHitResult HitResult;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category=Vigil)
 	float Score;
+	
+	UPROPERTY(Transient)
+	AActor* LastFocusActor;
 
 	bool HasValidData() const
 	{

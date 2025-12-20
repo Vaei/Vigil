@@ -149,7 +149,7 @@ void UVigilComponent::VigilTargetsReady(const FGameplayTag& FocusTag, const TArr
 	
 	// Update our current focus results
 	FVigilFocusResult& Focus = CurrentFocusResults.FindOrAdd(FocusTag);
-	AActor* LastFocusActor = Focus.HitResult.GetActor();
+	AActor* LastFocusActor = Focus.LastFocusActor;
 	Focus = Results.IsValidIndex(0) ? Results[0] : FVigilFocusResult();
 
 	if (LastFocusActor != Focus.HitResult.GetActor())

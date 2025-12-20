@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.4.0
+* Fixed bug where destroyed actors were not resulting in events broadcasting
+
 ### 1.3.4
 * Fixed category for VigilTargeting
 
