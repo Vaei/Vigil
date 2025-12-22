@@ -97,7 +97,7 @@ struct VIGIL_API FVigilFocusResult
 	float Score;
 	
 	UPROPERTY(Transient)
-	AActor* LastFocusActor;
+	TObjectPtr<AActor> LastFocusActor;
 
 	bool HasValidData() const
 	{
