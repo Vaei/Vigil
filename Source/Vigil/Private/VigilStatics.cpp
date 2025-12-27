@@ -125,6 +125,16 @@ UVigilComponent* UVigilStatics::FindVigilComponentForPlayerState(APlayerState* P
 	return nullptr;
 }
 
+AActor* UVigilStatics::GetActorFromVigilResult(const FVigilFocusResult& FocusResult)
+{
+	return FocusResult.HitResult.GetActor();
+}
+
+UPrimitiveComponent* UVigilStatics::GetComponentFromVigilResult(const FVigilFocusResult& FocusResult)
+{
+	return FocusResult.HitResult.GetComponent();
+}
+
 float UVigilStatics::GetDistanceToVigilTarget(const FHitResult& HitResult, float& NormalizedDistance, float& MaxDistance)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::GetDistanceToVigilTarget);

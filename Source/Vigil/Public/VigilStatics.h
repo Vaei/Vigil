@@ -49,6 +49,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Vigil)
 	static UVigilComponent* FindVigilComponentForPlayerState(APlayerState* PlayerState);
 	
+	UFUNCTION(BlueprintPure, Category=Vigil)
+	static AActor* GetActorFromVigilResult(const FVigilFocusResult& FocusResult);
+	
+	UFUNCTION(BlueprintPure, Category=Vigil)
+	static UPrimitiveComponent* GetComponentFromVigilResult(const FVigilFocusResult& FocusResult);
+	
 public:
 	/**
 	 * Compute the distance to the target from the hit result
