@@ -64,6 +64,12 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.4.1
+* Add InputVector and Velocity as rotation sources for target selection
+	* Useful for top-down games that are pawn-relevant instead of camera-relevant
+* Added helpers for cleaner code `UVigilStatics::GetActorFromVigilResult(Result);` and `UVigilStatics::GetComponentFromVigilResult`
+	* Was really messy having to break the hit result structs in BP
+
 ### 1.4.0
 * Fixed bug where destroyed actors were not resulting in events broadcasting
 
