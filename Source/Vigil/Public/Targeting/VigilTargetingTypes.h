@@ -31,6 +31,8 @@ enum class EVigilTargetRotationSource : uint8
 	Actor,
 	ControlRotation,
 	ViewRotation,
+	InputVector,
+	Velocity,
 };
 
 UENUM(BlueprintType)

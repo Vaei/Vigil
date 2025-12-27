@@ -8,6 +8,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(VigilTargetingStatics)
 
@@ -132,6 +133,14 @@ FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& T
 					}
 				}
 				break;
+			case EVigilTargetRotationSource::InputVector:
+				if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
+				{
+					return Pawn->GetMovementComponent()->GetLastInputVector().ToOrientationQuat();
+				}
+				break;
+			case EVigilTargetRotationSource::Velocity:
+				return SourceContext->SourceActor->GetVelocity().ToOrientationQuat();
 			}
 		}
 	}
