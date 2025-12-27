@@ -107,9 +107,12 @@ FVector UVigilTargetingStatics::GetSourceOffset(const FTargetingRequestHandle& T
 	return FVector::ZeroVector;
 }
 
-FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource RotationSource)
+FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& TargetingHandle,
+	EVigilTargetRotationSource RotationSource, bool& bZeroVector)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetingStatics::GetSourceRotation);
+	
+	bZeroVector = false;
 	
 	if (const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle))
 	{
@@ -136,11 +139,23 @@ FQuat UVigilTargetingStatics::GetSourceRotation(const FTargetingRequestHandle& T
 			case EVigilTargetRotationSource::InputVector:
 				if (const APawn* Pawn = Cast<APawn>(SourceContext->SourceActor))
 				{
+					const FVector InputVector = Pawn->GetMovementComponent()->GetLastInputVector();
+					if (InputVector.IsNearlyZero())
+					{
+						bZeroVector = true;
+					}
 					return Pawn->GetMovementComponent()->GetLastInputVector().ToOrientationQuat();
 				}
 				break;
 			case EVigilTargetRotationSource::Velocity:
-				return SourceContext->SourceActor->GetVelocity().ToOrientationQuat();
+				{
+					const FVector Velocity = SourceContext->SourceActor->GetVelocity();
+					if (Velocity.IsNearlyZero())
+					{
+						bZeroVector = true;
+					}
+					return SourceContext->SourceActor->GetVelocity().ToOrientationQuat();
+				}
 			}
 		}
 	}

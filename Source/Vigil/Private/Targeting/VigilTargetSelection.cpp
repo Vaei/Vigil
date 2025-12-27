@@ -48,6 +48,8 @@ UVigilTargetSelection::UVigilTargetSelection(const FObjectInitializer& ObjectIni
 
 	LocationSource = EVigilTargetLocationSource::Camera;
 	RotationSource = EVigilTargetRotationSource::ViewRotation;
+	RotationSourceFallbackA = EVigilTargetRotationSource::Velocity;
+	RotationSourceFallbackB = EVigilTargetRotationSource::Actor;
 	ConeTargetSource = EVigilConeTargetLocationSource::Component;
 
 	ConeLength = 1800.f;
@@ -71,7 +73,19 @@ FVector UVigilTargetSelection::GetSourceOffset_Implementation(
 FQuat UVigilTargetSelection::GetSourceRotation_Implementation(
 	const FTargetingRequestHandle& TargetingHandle) const
 {
-	return UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSource);
+	bool bZeroVector = false;
+	FQuat SourceRotation = UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSource, bZeroVector);
+	if (bZeroVector)
+	{
+		// Try first fallback
+		SourceRotation = UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSourceFallbackA, bZeroVector);
+		if (bZeroVector)
+		{
+			// Try second fallback
+			SourceRotation = UVigilTargetingStatics::GetSourceRotation(TargetingHandle, RotationSourceFallbackB, bZeroVector);
+		}
+	}
+	return SourceRotation;
 }
 
 FQuat UVigilTargetSelection::GetSourceRotationOffset_Implementation(

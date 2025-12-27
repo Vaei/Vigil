@@ -42,6 +42,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Vigil Selection")
 	EVigilTargetRotationSource RotationSource;
 
+	/** Fallback to use when InputVector or Velocity rotation source has no input */
+	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="RotationSource==EVigilTargetRotationSource::InputVector||RotationSource==EVigilTargetRotationSource::Velocity", EditConditionHides))
+	EVigilTargetRotationSource RotationSourceFallbackA;
+	
+	/** 
+	 * Fallback to use when InputVector or Velocity rotation source has no input 
+	 * Recommend using Actor or ControlRotation here, or anything that won't result in a zero vector, as there are no further fallbacks
+	 */
+	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="(RotationSource==EVigilTargetRotationSource::InputVector||RotationSource==EVigilTargetRotationSource::Velocity)&&(RotationSourceFallbackA==EVigilTargetRotationSource::InputVector||RotationSourceFallbackA==EVigilTargetRotationSource::Velocity)", EditConditionHides))
+	EVigilTargetRotationSource RotationSourceFallbackB;
+	
 	/** What to check against for the cone's target */
 	UPROPERTY(EditAnywhere, Category="Vigil Selection", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cone", EditConditionHides))
 	EVigilConeTargetLocationSource ConeTargetSource;

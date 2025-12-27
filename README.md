@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.4.2
+* Add Fallback rotation sources for when InputVector or Velocity produce zero vectors
+
 ### 1.4.1
 * Add InputVector and Velocity as rotation sources for target selection
 	* Useful for top-down games that are pawn-relevant instead of camera-relevant

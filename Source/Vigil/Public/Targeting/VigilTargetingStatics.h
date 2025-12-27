@@ -31,9 +31,12 @@ public:
 	static FVector GetSourceOffset(const FTargetingRequestHandle& TargetingHandle, EVigilTargetLocationSource LocationSource,
 		FVector DefaultSourceLocationOffset = FVector::ZeroVector, bool bUseRelativeLocationOffset = true);
 
-	/** Native event to get the source rotation for the AOE  */
+	/** 
+	 * Native event to get the source rotation for the AOE 
+	 * @param bZeroVector - Set to true if the resulting rotation is based on a zero vector (no input or no velocity)
+	 */
 	UFUNCTION(BlueprintCallable, Category=Vigil)
-	static FQuat GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource RotationSource);
+	static FQuat GetSourceRotation(const FTargetingRequestHandle& TargetingHandle, EVigilTargetRotationSource RotationSource, bool& bZeroVector);
 
 	/** Setup CollisionQueryParams for the AOE */
 	static void InitCollisionParams(const FTargetingRequestHandle& TargetingHandle, FCollisionQueryParams& OutParams,

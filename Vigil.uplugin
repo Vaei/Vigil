@@ -1,7 +1,7 @@
 ﻿{
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.4.1",
+	"VersionName": "1.4.2",
 	"FriendlyName": "Vigil",
 	"Description": "Focus Targeting - robust, data-driven, asynchronous, with optional network prediction. Pair me with Grasp and Doors for a full experience.",
 	"Category": "Gameplay",
