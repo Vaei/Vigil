@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.4.3
+* Fix cone target selection bug - was using mid-point of cone instead of rear as origin for angle checks
+
 ### 1.4.2
 * Add Fallback rotation sources for when InputVector or Velocity produce zero vectors
 

@@ -325,10 +325,12 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 				}
 
 				const FVector SourceDirection = SourceRotation.Vector();
-				if (!GetConeShape().IsPointWithinCone(TargetLocation, SourceLocation, SourceDirection))
+				const FVector ConeRear = SourceLocation - SourceDirection * (GetConeShape().Length * 0.5f);
+				if (!GetConeShape().IsPointWithinCone(TargetLocation, ConeRear, SourceDirection))
 				{
 					continue;
-				}}
+				}
+			}
 
 			bool bAddResult = true;
 			if (!bTraceMultipleComponentsPerActor)
