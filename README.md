@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.4.4
+* Fix scan task not ending targeting requests
+
 ### 1.4.3
 * Fix cone target selection bug - was using mid-point of cone instead of rear as origin for angle checks
 

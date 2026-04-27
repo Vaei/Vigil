@@ -506,6 +506,9 @@ void UVigilScanTask::OnDestroy(bool bInOwnerFinished)
 		
 		if (VC.IsValid())
 		{
+			// Ensure all targeting requests are ended when the task is destroyed to prevent dangling requests
+			VC->EndAllTargetingRequests(false);
+			
 			if (VC->OnPauseVigil.IsBoundToObject(this))
 			{
 				VC->OnPauseVigil.Unbind();
