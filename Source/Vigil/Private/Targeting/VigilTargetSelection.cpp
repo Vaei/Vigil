@@ -94,6 +94,30 @@ FQuat UVigilTargetSelection::GetSourceRotationOffset_Implementation(
 	return DefaultSourceRotationOffset.Quaternion();
 }
 
+FVector UVigilTargetSelection::GetUpVector(const FTargetingRequestHandle& TargetingHandle,
+	const FQuat& SourceRotation) const
+{
+	switch (UpMode)
+	{
+	case EVigilUpMode::SourceRotationUp:
+		return SourceRotation.GetUpVector();
+	case EVigilUpMode::SourceActorUp:
+		{
+			const FTargetingSourceContext* SourceContext = FTargetingSourceContext::Find(TargetingHandle);
+			const AActor* SourceActor = SourceContext ? SourceContext->SourceActor : nullptr;
+			return SourceActor ? SourceActor->GetActorUpVector() : FVector::UpVector;
+		}
+	case EVigilUpMode::CustomUp:
+		{
+			const FVector Normalized = CustomUp.GetSafeNormal();
+			return Normalized.IsNearlyZero() ? FVector::UpVector : Normalized;
+		}
+	case EVigilUpMode::WorldUp:
+	default:
+		return FVector::UpVector;
+	}
+}
+
 void UVigilTargetSelection::Execute(const FTargetingRequestHandle& TargetingHandle) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilTargetSelection::Execute);
@@ -266,6 +290,8 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 		FTargetingDefaultResultsSet& TargetingResults = FTargetingDefaultResultsSet::FindOrAdd(TargetingHandle);
 		const FVector SourceLocation = GetSourceLocation(TargetingHandle) + GetSourceOffset(TargetingHandle);
 		const FQuat SourceRotation = (GetSourceRotation(TargetingHandle) * GetSourceRotationOffset(TargetingHandle)).GetNormalized();
+		const FVector UpVector = ShapeType == EVigilTargetingShape::Cylinder ?
+			GetUpVector(TargetingHandle, SourceRotation) : FVector::UpVector;
 
 		for (const FOverlapResult& OverlapResult : Overlaps)
 		{
@@ -278,7 +304,8 @@ int32 UVigilTargetSelection::ProcessOverlapResults(const FTargetingRequestHandle
 			if (ShapeType == EVigilTargetingShape::Cylinder)
 			{
 				const float RadiusSquared = (HalfExtent.X * HalfExtent.X);
-				const float DistanceSquared = FVector::DistSquared2D(OverlapResult.GetActor()->GetActorLocation(), SourceLocation);
+				const float DistanceSquared = FVector::VectorPlaneProject(
+					OverlapResult.GetActor()->GetActorLocation() - SourceLocation, UpVector).SizeSquared();
 				if (DistanceSquared > RadiusSquared)
 				{
 					continue;

@@ -124,7 +124,15 @@ protected:
 	 */
 	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::SourceComponent", EditConditionHides))
 	FName ComponentTag = NAME_None;
-	
+
+	/** Which up direction the cylinder's radius constraint is measured against (the cylinder axis) */
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cylinder", EditConditionHides))
+	EVigilUpMode UpMode = EVigilUpMode::WorldUp;
+
+	/** The up vector used when UpMode is CustomUp */
+	UPROPERTY(EditAnywhere, Category="Vigil Selection Shape", meta=(EditCondition="ShapeType==EVigilTargetingShape::Cylinder&&UpMode==EVigilUpMode::CustomUp", EditConditionHides))
+	FVector CustomUp = FVector::UpVector;
+
 public:
 	UVigilTargetSelection(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
@@ -144,6 +152,9 @@ protected:
 	/** Native event to get the source rotation for the AOE  */
 	UFUNCTION(BlueprintNativeEvent, Category="Vigil Selection")
 	FQuat GetSourceRotationOffset(const FTargetingRequestHandle& TargetingHandle) const;
+
+	/** Up basis for up-dependent constraints; defaults to the configured UpMode/CustomUp. Override to resolve per-source. */
+	virtual FVector GetUpVector(const FTargetingRequestHandle& TargetingHandle, const FQuat& SourceRotation) const;
 
 public:
 	/** Evaluation function called by derived classes to process the targeting request */

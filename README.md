@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.5.0
+* Add support for custom up vector
+
 ### 1.4.4
 * Fix scan task not ending targeting requests
 
