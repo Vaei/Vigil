@@ -52,6 +52,27 @@ enum class EVigilUpMode : uint8
 	CustomUp			UMETA(ToolTip="Use the supplied custom up vector, e.g. the source's gravity up"),
 };
 
+/**
+ * Which world location is projected to screen space when measuring screen distance
+ */
+UENUM(BlueprintType)
+enum class EVigilScreenDistanceLocationSource : uint8
+{
+	HitComponent,
+	HitActor,
+	HitLocation,
+};
+
+/**
+ * How distance to a target is measured
+ */
+UENUM(BlueprintType)
+enum class EVigilDistanceMode : uint8
+{
+	WorldDistance		UMETA(ToolTip="Distance from the targeting source to the target in world space"),
+	ScreenDistance		UMETA(ToolTip="Distance from the center of the screen/viewport to the target projected to screen space. LOCAL player only -- not available to dedicated servers or simulated proxies"),
+};
+
 enum class EVigilNetSyncPendingState : uint8
 {
 	None,

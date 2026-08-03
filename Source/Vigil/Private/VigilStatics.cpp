@@ -7,6 +7,8 @@
 #include "DrawDebugHelpers.h"
 #include "VigilComponent.h"
 #include "VigilTypes.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
@@ -170,6 +172,58 @@ float UVigilStatics::GetAngleToVigilTarget(const FHitResult& HitResult, float& N
 	const float AngleDiff = FMath::RadiansToDegrees(FMath::Acos(AngleDot));
 	NormalizedAngle = FMath::Clamp(AngleDiff / MaxAngle, 0.f, 1.f);
 	return AngleDiff;
+}
+
+float UVigilStatics::GetScreenDistanceToVigilTarget(const UObject* WorldContextObject, const FHitResult& HitResult,
+	EVigilScreenDistanceLocationSource LocationSource, float& NormalizedDistance, float& MaxDistance)
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(VigilStatics::GetScreenDistanceToVigilTarget);
+
+	NormalizedDistance = 1.f;
+	MaxDistance = 0.f;
+
+	if (IsRunningDedicatedServer())
+	{
+		return 0.f;
+	}
+
+	const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::ReturnNull) : nullptr;
+	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+	if (!PC)
+	{
+		return 0.f;
+	}
+
+	FVector WorldLocation = HitResult.Location;
+	if (LocationSource == EVigilScreenDistanceLocationSource::HitActor)
+	{
+		if (const AActor* Actor = HitResult.GetActor())
+		{
+			WorldLocation = Actor->GetActorLocation();
+		}
+	}
+	else if (LocationSource == EVigilScreenDistanceLocationSource::HitComponent)
+	{
+		if (const UPrimitiveComponent* Component = HitResult.GetComponent())
+		{
+			WorldLocation = Component->GetComponentLocation();
+		}
+	}
+
+	FVector2D ScreenLocation;
+	if (!PC->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation, true))
+	{
+		return 0.f;
+	}
+
+	const FGeometry Geometry = UWidgetLayoutLibrary::GetViewportWidgetGeometry(PC);
+	const FVector2D Size = Geometry.GetAbsoluteSize();
+	const FVector2D Center = Size * 0.5f;
+
+	MaxDistance = Center.Size();
+	const float Distance = FVector2D::Distance(Center, ScreenLocation);
+	NormalizedDistance = MaxDistance > 0.f ? FMath::Clamp(Distance / MaxDistance, 0.f, 1.f) : 1.f;
+	return Distance;
 }
 
 FString UVigilStatics::NetSyncToString(EVigilNetSyncType SyncType)

@@ -64,6 +64,9 @@ Vigil includes verbose logging that will allow you to see every stage of the foc
 
 ## Changelog
 
+### 1.6.0
+* Toggle for ScreenDistance for Sorting
+
 ### 1.5.0
 * Add support for custom up vector
 

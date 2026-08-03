@@ -3,16 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "VigilTypes.h"
 #include "Sorting/VigilSortBase.h"
 #include "VigilSort_ScreenDistance.generated.h"
-
-UENUM(BlueprintType)
-enum class EVigilScreenDistanceLocationSource : uint8
-{
-	HitComponent,
-	HitActor,
-	HitLocation,
-};
 
 /**
  * Used to sort the available targets based on their distance from the center of the screen/viewport

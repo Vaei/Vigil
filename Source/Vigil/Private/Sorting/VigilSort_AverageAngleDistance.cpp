@@ -15,7 +15,15 @@ float UVigilSort_AverageAngleDistance::GetScoreForTarget_Implementation(const FT
 	TRACE_CPUPROFILER_EVENT_SCOPE(VigilSort_AverageAngleDistance::GetScoreForTarget);
 	
 	float Dist, Angle, Max;
-	UVigilStatics::GetDistanceToVigilTarget(TargetData.HitResult, Dist, Max);
+	if (DistanceMode == EVigilDistanceMode::ScreenDistance)
+	{
+		UVigilStatics::GetScreenDistanceToVigilTarget(GetTargetingSubsystem(TargetingHandle), TargetData.HitResult,
+			LocationSource, Dist, Max);
+	}
+	else
+	{
+		UVigilStatics::GetDistanceToVigilTarget(TargetData.HitResult, Dist, Max);
+	}
 	UVigilStatics::GetAngleToVigilTarget(TargetData.HitResult, Angle, Max);
 	return 0.5f * (Dist + Angle);
 }

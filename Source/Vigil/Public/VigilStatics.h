@@ -74,6 +74,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Get Angle to Vigil Target"))
 	static float GetAngleToVigilTarget(const FHitResult& HitResult, float& NormalizedAngle, float& MaxAngle);
 
+	/**
+	 * Compute the distance from the center of the screen to the target projected to screen space
+	 * LOCAL player only -- not available to dedicated servers or simulated proxies
+	 * @param WorldContextObject Object used to resolve the world the local player controller belongs to
+	 * @param HitResult The hit result to compute the distance from -- must have been output from Vigil Targeting Selection Task
+	 * @param LocationSource What world location to project to screen space
+	 * @param NormalizedDistance The normalized distance to the target (0.0 - 1.0), 1.0 if the target could not be projected
+	 * @param MaxDistance The maximum distance to the target, i.e. half the viewport diagonal
+	 */
+	UFUNCTION(BlueprintCallable, Category=Vigil, meta=(DisplayName="Get Screen Distance to Vigil Target", WorldContext="WorldContextObject"))
+	static float GetScreenDistanceToVigilTarget(const UObject* WorldContextObject, const FHitResult& HitResult,
+		EVigilScreenDistanceLocationSource LocationSource, float& NormalizedDistance, float& MaxDistance);
+
 public:
 	static FString NetSyncToString(EVigilNetSyncType SyncType);
 	
